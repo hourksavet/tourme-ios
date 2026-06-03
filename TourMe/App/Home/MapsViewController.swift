@@ -50,7 +50,6 @@ class MapsViewController: UIViewController {
 		let view = UIView()
 		view.backgroundColor = .white
 		view.alpha = 0.96
-		view.isHidden = true
 		view.clipsToBounds = true
 		view.translatesAutoresizingMaskIntoConstraints = false
 		return view
@@ -193,15 +192,6 @@ class MapsViewController: UIViewController {
 		button.translatesAutoresizingMaskIntoConstraints = false
 		return button
 	}()
-
-	private lazy var actionCloseButton: UIButton = {
-		let button = UIButton(type: .system)
-		button.setImage(UIImage(systemName: "xmark"), for: .normal)
-		button.tintColor = .black
-		button.addTarget(self, action: #selector(onCloseActionView), for: .touchUpInside)
-		button.translatesAutoresizingMaskIntoConstraints = false
-		return button
-	}()
 	
 	private lazy var zoomControlView: UIView = {
 		let view = UIView()
@@ -241,8 +231,11 @@ class MapsViewController: UIViewController {
 	private var currentLocation: CLLocation?
 	private var selectedOriginCoordinate: CLLocationCoordinate2D?
 	private var pinnedCoordinate: CLLocationCoordinate2D?
+	
+	// To update route progress ongoing tour
 	private var previousCoordinates: [CLLocationCoordinate2D] = []
 	private var nextCoordinates: [CLLocationCoordinate2D] = []
+	
 	private var allPlaceModels: [PlaceListModel] = []
 	private var recentPlaceModels: [PlaceListModel] = []
 	private var filteredPlaceModels: [PlaceListModel] = []
@@ -254,6 +247,7 @@ class MapsViewController: UIViewController {
 	private var isRouteReversed: Bool = false
 	private var isActionExpanded: Bool = false
 	private var actionExpandedHeightConstraint: NSLayoutConstraint?
+	private var actionViewBottomConstraint: NSLayoutConstraint?
 	
 	private var isChangingMapPitch: Bool = false
 	
@@ -312,7 +306,6 @@ class MapsViewController: UIViewController {
 			actionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
 			actionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
 			actionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -10),
-			actionView.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -8),
 		])
 		
 		actionView.addSubview(actionHeaderView)
@@ -324,7 +317,6 @@ class MapsViewController: UIViewController {
 		actionHeaderView.addSubview(actionDividerView)
 		actionHeaderView.addSubview(destinationTextField)
 		actionHeaderView.addSubview(actionSwapButton)
-		actionHeaderView.addSubview(actionCloseButton)
 		actionHeaderView.addSubview(actionHeaderTapButton)
 		actionExpandedView.addSubview(currentLocationButton)
 		actionExpandedView.addSubview(chooseOnMapButton)
@@ -337,6 +329,8 @@ class MapsViewController: UIViewController {
 
 		actionExpandedHeightConstraint = actionExpandedView.heightAnchor.constraint(equalToConstant: 0)
 		actionExpandedHeightConstraint?.isActive = true
+		actionViewBottomConstraint = actionView.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -8)
+		actionViewBottomConstraint?.isActive = true
 
 		NSLayoutConstraint.activate([
 			actionHeaderView.topAnchor.constraint(equalTo: actionView.topAnchor),
@@ -392,15 +386,10 @@ class MapsViewController: UIViewController {
 			routeDestinationIconView.leadingAnchor.constraint(equalTo: actionHeaderView.leadingAnchor, constant: 15),
 			routeDestinationIconView.bottomAnchor.constraint(equalTo: actionHeaderView.bottomAnchor, constant: -15),
 
-			actionCloseButton.widthAnchor.constraint(equalToConstant: 20),
-			actionCloseButton.heightAnchor.constraint(equalToConstant: 20),
-			actionCloseButton.topAnchor.constraint(equalTo: actionHeaderView.topAnchor, constant: 10),
-			actionCloseButton.trailingAnchor.constraint(equalTo: actionHeaderView.trailingAnchor, constant: -10),
-
 			actionSwapButton.widthAnchor.constraint(equalToConstant: 36),
 			actionSwapButton.heightAnchor.constraint(equalToConstant: 44),
 			actionSwapButton.centerYAnchor.constraint(equalTo: actionHeaderView.centerYAnchor),
-			actionSwapButton.trailingAnchor.constraint(equalTo: actionCloseButton.leadingAnchor, constant: -4),
+			actionSwapButton.trailingAnchor.constraint(equalTo: actionHeaderView.trailingAnchor, constant: -10),
 
 			originTextField.topAnchor.constraint(equalTo: actionHeaderView.topAnchor, constant: 8),
 			originTextField.leadingAnchor.constraint(equalTo: routeOriginIconView.trailingAnchor, constant: 10),
@@ -477,7 +466,14 @@ class MapsViewController: UIViewController {
 		reloadRecentPlaces()
 		
 		updateActionSummary()
+		
+		NotificationCenter.default.addObserver(self, selector: #selector(handleKeyboardFrameChange), name: UIResponder.keyboardWillChangeFrameNotification, object: nil)
+		NotificationCenter.default.addObserver(self, selector: #selector(handleKeyboardFrameChange), name: UIResponder.keyboardWillHideNotification, object: nil)
     }
+
+	deinit {
+		NotificationCenter.default.removeObserver(self)
+	}
 	
 	override func viewDidLayoutSubviews() {
 		super.viewDidLayoutSubviews()
@@ -552,6 +548,24 @@ class MapsViewController: UIViewController {
 		return max(0, availableHeight)
 	}
 
+	@objc private func handleKeyboardFrameChange(_ notification: Notification) {
+		guard let userInfo = notification.userInfo,
+			let keyboardFrameValue = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue else {
+			return
+		}
+
+		let animationDuration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double ?? 0.25
+		let animationCurveRaw = (userInfo[UIResponder.keyboardAnimationCurveUserInfoKey] as? NSNumber)?.uintValue ?? UInt(UIView.AnimationCurve.easeInOut.rawValue)
+		let animationOptions = UIView.AnimationOptions(rawValue: animationCurveRaw << 16)
+		let keyboardFrameInView = view.convert(keyboardFrameValue.cgRectValue, from: nil)
+		let overlapHeight = max(0, view.bounds.maxY - keyboardFrameInView.minY - view.safeAreaInsets.bottom)
+		actionViewBottomConstraint?.constant = -(overlapHeight + 8)
+		updateExpandedLayout(animated: false)
+		UIView.animate(withDuration: animationDuration, delay: 0, options: [animationOptions, .beginFromCurrentState]) {
+			self.view.layoutIfNeeded()
+		}
+	}
+
 	private func setPinnedLocation(_ coordinate: CLLocationCoordinate2D, destinationName: String) {
 		pinnedCoordinate = coordinate
 		selectedDestinationName = destinationName
@@ -561,7 +575,6 @@ class MapsViewController: UIViewController {
 		destinationTextField.resignFirstResponder()
 		isRouteReversed = false
 		isActionExpanded = false
-		actionView.isHidden = false
 		previousCoordinates.removeAll()
 		nextCoordinates.removeAll()
 		mapView.removeAnnotation(id: "pinned_annotation")
@@ -584,7 +597,6 @@ class MapsViewController: UIViewController {
 		originTextField.text = originName
 		originTextField.resignFirstResponder()
 		isActionExpanded = false
-		actionView.isHidden = false
 		previousCoordinates.removeAll()
 		nextCoordinates.removeAll()
 		updateExpandedLayout(animated: true)
@@ -595,7 +607,6 @@ class MapsViewController: UIViewController {
 	}
 
 	@objc private func onOriginFieldFocus() {
-		actionView.isHidden = false
 		activeSearchField = .origin
 		isActionExpanded = true
 		reloadRecentPlaces()
@@ -604,7 +615,6 @@ class MapsViewController: UIViewController {
 	}
 
 	@objc private func onDestinationFieldFocus() {
-		actionView.isHidden = false
 		activeSearchField = .destination
 		isActionExpanded = true
 		reloadRecentPlaces()
@@ -640,7 +650,6 @@ class MapsViewController: UIViewController {
 				hasClearedOriginSearchOnFirstFocus = false
 				originTextField.resignFirstResponder()
 				isActionExpanded = false
-				actionView.isHidden = false
 				previousCoordinates.removeAll()
 				nextCoordinates.removeAll()
 				updateExpandedLayout(animated: true)
@@ -653,11 +662,6 @@ class MapsViewController: UIViewController {
 		}
 	}
 
-	@objc private func onCloseActionView() {
-		clearActionState()
-	}
-	
-	
 	@objc private func onStartStopNavigation() {
 		switch locationState {
 			case .focusing, .notFocus:
@@ -744,7 +748,6 @@ class MapsViewController: UIViewController {
 		originTextField.text = nil
 		destinationTextField.attributedText = nil
 		updateExpandedLayout(animated: true)
-		actionView.isHidden = true
 	}
 	
 	private func drawRouteOnMap() {
