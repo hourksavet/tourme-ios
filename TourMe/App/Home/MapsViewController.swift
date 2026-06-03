@@ -9,9 +9,18 @@ import UIKit
 import MapLibre
 import SVProgressHUD
 
-private enum RouteSearchField {
+
+private struct LocationViewModel {
+	var isUserLocation: Bool = false
+	var title: String = ""
+	var coordinate: CLLocationCoordinate2D?
+	var distance: Int = 0
+}
+
+private enum SearchFieldState {
 	case origin
 	case destination
+	case none
 }
 
 class MapsViewController: UIViewController {
@@ -228,24 +237,29 @@ class MapsViewController: UIViewController {
 
 	private let statusFadeMask = CAGradientLayer()
 	
+	private var originLoModel: LocationViewModel? {
+		didSet {
+			onUpdateOriginModel()
+		}
+	}
+	
+	private var destinationLoModel: LocationViewModel? {
+		didSet {
+			onUpdateDestinationModel()
+		}
+	}
+	
 	private var currentLocation: CLLocation?
-	private var selectedOriginCoordinate: CLLocationCoordinate2D?
-	private var pinnedCoordinate: CLLocationCoordinate2D?
 	
 	// To update route progress ongoing tour
 	private var previousCoordinates: [CLLocationCoordinate2D] = []
 	private var nextCoordinates: [CLLocationCoordinate2D] = []
 	
 	private var allPlaceModels: [PlaceListModel] = []
-	private var recentPlaceModels: [PlaceListModel] = []
 	private var filteredPlaceModels: [PlaceListModel] = []
-	private var selectedOriginName: String?
-	private var selectedDestinationName: String?
-	private var activeSearchField: RouteSearchField = .destination
-	private var hasClearedOriginSearchOnFirstFocus: Bool = false
-	private var hasClearedDestinationSearchOnFirstFocus: Bool = false
-	private var isRouteReversed: Bool = false
-	private var isActionExpanded: Bool = false
+	
+	private var activeSearchField: SearchFieldState = .none
+	
 	private var actionExpandedHeightConstraint: NSLayoutConstraint?
 	private var actionViewBottomConstraint: NSLayoutConstraint?
 	
@@ -462,10 +476,11 @@ class MapsViewController: UIViewController {
 		locationManager.stopUpdatingLocation()
 		suggestionTableView.dataSource = self
 		suggestionTableView.delegate = self
-		originTextField.addTarget(self, action: #selector(onOriginFieldFocus), for: .editingDidBegin)
-		reloadRecentPlaces()
 		
-		updateActionSummary()
+		originLoModel = LocationViewModel(isUserLocation: true, title: "Your location", coordinate: nil, distance: 0)
+		originTextField.text = originLoModel?.title
+		
+		reloadRecentPlaces()
 		
 		NotificationCenter.default.addObserver(self, selector: #selector(handleKeyboardFrameChange), name: UIResponder.keyboardWillChangeFrameNotification, object: nil)
 		NotificationCenter.default.addObserver(self, selector: #selector(handleKeyboardFrameChange), name: UIResponder.keyboardWillHideNotification, object: nil)
@@ -490,7 +505,7 @@ class MapsViewController: UIViewController {
 		statusFadeMask.startPoint = CGPoint(x: 0.5, y: 0.0)
 		statusFadeMask.endPoint = CGPoint(x: 0.5, y: 1.0)
 		statusEffectView.layer.mask = statusFadeMask
-		if isActionExpanded {
+		if activeSearchField != .none {
 			updateExpandedLayout(animated: false)
 		}
 	}
@@ -499,7 +514,6 @@ class MapsViewController: UIViewController {
 		let sortDescriptor = NSSortDescriptor(key: "date", ascending: false)
 		let places = Const.dataManager.fetchData(Place.self, predicate: nil, sortDescriptors: [sortDescriptor])
 		allPlaceModels = Array(places).map { PlaceListModel(place: $0) }
-		recentPlaceModels = Array(allPlaceModels)
 		applySearchResults()
 	}
 
@@ -522,9 +536,9 @@ class MapsViewController: UIViewController {
 		let preferredHeight = expandedContentHeight()
 		let maximumHeight = maxExpandedHeight()
 		let resolvedHeight = min(preferredHeight, maximumHeight)
-		actionExpandedHeightConstraint?.constant = isActionExpanded ? resolvedHeight : 0
-		actionExpandedView.isHidden = !isActionExpanded
-		suggestionTableView.isScrollEnabled = isActionExpanded && preferredHeight > maximumHeight
+		actionExpandedHeightConstraint?.constant = activeSearchField != .none ? resolvedHeight : 0
+		actionExpandedView.isHidden = activeSearchField == .none
+		suggestionTableView.isScrollEnabled = activeSearchField != .none && preferredHeight > maximumHeight
 		let animations = {
 			self.view.layoutIfNeeded()
 		}
@@ -566,70 +580,123 @@ class MapsViewController: UIViewController {
 		}
 	}
 
-	private func setPinnedLocation(_ coordinate: CLLocationCoordinate2D, destinationName: String) {
-		pinnedCoordinate = coordinate
-		selectedDestinationName = destinationName
-		activeSearchField = .destination
-		hasClearedDestinationSearchOnFirstFocus = false
-		destinationTextField.text = destinationName
+	private func onUserPinnedAt(_ coordinate: CLLocationCoordinate2D) {
 		destinationTextField.resignFirstResponder()
-		isRouteReversed = false
-		isActionExpanded = false
 		previousCoordinates.removeAll()
 		nextCoordinates.removeAll()
-		mapView.removeAnnotation(id: "pinned_annotation")
-
+		
+		if activeSearchField == .origin {
+			var newOrigin = originLoModel
+			newOrigin?.isUserLocation = false
+			newOrigin?.coordinate = coordinate
+			originLoModel = newOrigin
+		}else {
+			activeSearchField = .destination
+			var newDestination = destinationLoModel
+			newDestination?.coordinate = coordinate
+			newDestination?.isUserLocation = false
+			destinationLoModel = newDestination
+		}
+		
+		// Setup marker
+		addAnnotationAt(coordinate)
+		
+		// Find route
+		onRouteLocationsUpdate()
+		
+		updateExpandedLayout(animated: true)
+	}
+	
+	private func onUpdateOriginModel() {
+		if originLoModel != nil && originLoModel!.isUserLocation {
+			routeOriginIconView.image = UIImage(systemName: "circle.inset.filled")
+			routeOriginIconView.tintColor = .primary
+			originTextField.textColor = .primary
+			originTextField.text = "Your location"
+		}else {
+			routeOriginIconView.image = UIImage(named: "ic_marker")
+			routeOriginIconView.tintColor = .red
+			originTextField.textColor = .black
+			originTextField.text = originLoModel?.title
+		}
+	}
+	
+	private func onUpdateDestinationModel() {
+		if destinationLoModel != nil && destinationLoModel!.isUserLocation {
+			routeDestinationIconView.image = UIImage(systemName: "circle.inset.filled")
+			routeDestinationIconView.tintColor = .primary
+			destinationTextField.textColor = .primary
+			if destinationLoModel!.distance > 0 {
+				destinationTextField.text = "Your location ( \(Utils.toDistance(meters: destinationLoModel!.distance)) )"
+			}else {
+				destinationTextField.text = "Your location "
+			}
+		}else {
+			routeDestinationIconView.image = UIImage(named: "ic_marker")
+			routeDestinationIconView.tintColor = .red
+			destinationTextField.textColor = .black
+			destinationTextField.text = destinationLoModel?.title
+		}
+	}
+	
+	
+	private func addAnnotationAt(_ coordinate: CLLocationCoordinate2D) {
+		var pinnedID = "origin_pinned_annotation"
+		if activeSearchField == .destination {
+			pinnedID = "destination_pinned_annotation"
+		}
+		mapView.removeAnnotation(id: pinnedID)
+		
 		let annotation = PlaceAnnotation()
 		annotation.coordinate = coordinate
-		annotation.id = "pinned_annotation"
+		annotation.id = pinnedID
 		mapView.addAnnotation(annotation)
-		updateExpandedLayout(animated: true)
-		updateActionSummary()
-		SVProgressHUD.show(withStatus: "finding_route...".localized())
-		findRouteTo(coordinate)
 	}
-
-	private func setOriginLocation(_ coordinate: CLLocationCoordinate2D, originName: String) {
-		selectedOriginCoordinate = coordinate
-		selectedOriginName = originName
-		activeSearchField = .origin
-		hasClearedOriginSearchOnFirstFocus = false
-		originTextField.text = originName
-		originTextField.resignFirstResponder()
-		isActionExpanded = false
-		previousCoordinates.removeAll()
-		nextCoordinates.removeAll()
-		updateExpandedLayout(animated: true)
-		updateActionSummary()
-		if pinnedCoordinate != nil {
-			recalculateRoute()
+	
+	
+	private func onRouteLocationsUpdate() {
+		guard let userCoor = mapView.userLocation?.coordinate else { return }
+		let originCoor = originLoModel?.coordinate ?? userCoor
+		let destinationCoor = destinationLoModel?.coordinate
+		
+		if destinationCoor == nil { return }
+		
+		SVProgressHUD.show(withStatus: "finding_route...".localized())
+		DispatchQueue.global(qos: .default).async {
+			let routeCoordinates = Const.routingProvider.coordinates(originCoor, destinationCoor!)
+			
+			let distance = Const.routingProvider.distance(routeCoordinates)
+			self.destinationLoModel?.distance = distance
+			DispatchQueue.main.async {
+				self.appendDestinationAddress(text: Utils.toDistance(meters: distance))
+			}
+			
+			self.nextCoordinates = routeCoordinates
+			self.drawRouteOnMap()
 		}
 	}
 
-	@objc private func onOriginFieldFocus() {
-		activeSearchField = .origin
-		isActionExpanded = true
-		reloadRecentPlaces()
-		updateExpandedLayout(animated: true)
-		applySearchResults()
-	}
-
-	@objc private func onDestinationFieldFocus() {
-		activeSearchField = .destination
-		isActionExpanded = true
-		reloadRecentPlaces()
-		updateExpandedLayout(animated: true)
-		applySearchResults()
+	private func appendDestinationAddress(text: String) {
+		destinationTextField.attributedText = NSAttributedString().multiStyles(
+			lineSpace: 0,
+			resources: [
+				[.default(size: 17): .black],
+				[.defaultMedium(size: 17): .black],
+			],
+			texts: [
+				destinationLoModel?.title ?? "",
+				" ( \(text) )"
+			]
+			
+		)
 	}
 
 	@objc private func onToggleActionExpanded() {
-		isActionExpanded.toggle()
 		reloadRecentPlaces()
 		updateExpandedLayout(animated: true)
 	}
 
 	@objc private func onChooseOnMap() {
-		isActionExpanded = false
 		originTextField.resignFirstResponder()
 		destinationTextField.resignFirstResponder()
 		updateExpandedLayout(animated: true)
@@ -638,38 +705,22 @@ class MapsViewController: UIViewController {
 	}
 
 	@objc private func onUseCurrentLocation() {
-		guard let coordinate = currentLocation?.coordinate ?? mapView.userLocation?.coordinate else {
+		guard let coordinate = mapView.userLocation?.coordinate else {
 			showToast(message: "Current location unavailable")
 			return
 		}
 		mapView.setCenter(coordinate, zoomLevel: mapView.zoomLevel, animated: true)
 		switch activeSearchField {
-			case .origin:
-				selectedOriginCoordinate = nil
-				selectedOriginName = nil
-				hasClearedOriginSearchOnFirstFocus = false
-				originTextField.resignFirstResponder()
-				isActionExpanded = false
-				previousCoordinates.removeAll()
-				nextCoordinates.removeAll()
-				updateExpandedLayout(animated: true)
-				updateActionSummary()
-				if pinnedCoordinate != nil {
-					recalculateRoute()
-				}
-			case .destination:
-				setPinnedLocation(coordinate, destinationName: "Current location")
+		case .origin:
+			originTextField.resignFirstResponder()
+			previousCoordinates.removeAll()
+			nextCoordinates.removeAll()
+			updateExpandedLayout(animated: true)
+		case .destination:
+			destinationTextField.resignFirstResponder()
+		case .none:
+			break
 		}
-	}
-
-	@objc private func onStartStopNavigation() {
-		switch locationState {
-			case .focusing, .notFocus:
-				locationState = .indirect
-			case .indirect:
-				locationState = .focusing
-		}
-		moveToCurrentLocation()
 	}
 	
 	
@@ -688,65 +739,44 @@ class MapsViewController: UIViewController {
 				
 			// Convert screen point to coordinate
 			let coordinate = mapView.convert(point, toCoordinateFrom: mapView)
-			switch activeSearchField {
-				case .origin:
-					setOriginLocation(coordinate, originName: "Dropped Pin")
-				case .destination:
-					setPinnedLocation(coordinate, destinationName: "Dropped Pin")
-			}
+			onUserPinnedAt(coordinate)
 		}
 	}
 
 	@objc private func onSwapRouteDirection() {
-		guard pinnedCoordinate != nil else { return }
-		isRouteReversed.toggle()
-		isActionExpanded = false
+		let tmpOrigin = originLoModel
+		originLoModel = destinationLoModel
+		destinationLoModel = tmpOrigin
+		
 		previousCoordinates.removeAll()
 		nextCoordinates.removeAll()
+		onRouteLocationsUpdate()
+		
+		activeSearchField = .none
 		updateExpandedLayout(animated: true)
-		updateActionSummary()
-		recalculateRoute()
-	}
-	
-	private func findRouteTo(_ coordinate: CLLocationCoordinate2D) {
-		guard let userCoor = mapView.userLocation?.coordinate else { return }
-		let baseOriginCoordinate = selectedOriginCoordinate ?? userCoor
-		let startCoordinate = isRouteReversed ? coordinate : baseOriginCoordinate
-		let endCoordinate = isRouteReversed ? baseOriginCoordinate : coordinate
-		DispatchQueue.global(qos: .default).async {
-			let routeCoordinates = Const.routingProvider.coordinates(startCoordinate, endCoordinate)
-			self.nextCoordinates = routeCoordinates
-			self.drawRouteOnMap()
-		}
-	}
-
-	private func recalculateRoute() {
-		guard let pinnedCoordinate else { return }
-		SVProgressHUD.show(withStatus: "finding_route...".localized())
-		findRouteTo(pinnedCoordinate)
 	}
 
 	private func clearActionState() {
+		SVProgressHUD.dismiss()
+		
+		activeSearchField = .destination
+		
 		originTextField.resignFirstResponder()
 		destinationTextField.resignFirstResponder()
-		SVProgressHUD.dismiss()
-		mapView.removeAnnotation(id: "pinned_annotation")
+		
+		mapView.removeAnnotation(id: "origin_pinned_annotation")
+		mapView.removeAnnotation(id: "destination_pinned_annotation")
+		
 		mapView.removePolyline(sourceID: "pinned_route_source_next", layerID: "pinne_route_layer_next")
 		mapView.removePolyline(sourceID: "pinned_route_source_previous", layerID: "pinne_route_layer_previous")
-		selectedOriginCoordinate = nil
-		pinnedCoordinate = nil
-		selectedOriginName = nil
-		selectedDestinationName = nil
-		activeSearchField = .destination
-		hasClearedOriginSearchOnFirstFocus = false
-		hasClearedDestinationSearchOnFirstFocus = false
-		isRouteReversed = false
-		isActionExpanded = false
+		
 		previousCoordinates.removeAll()
 		nextCoordinates.removeAll()
 		filteredPlaceModels.removeAll()
+		
 		originTextField.text = nil
 		destinationTextField.attributedText = nil
+		
 		updateExpandedLayout(animated: true)
 	}
 	
@@ -760,6 +790,11 @@ class MapsViewController: UIViewController {
 					color: .blue,
 					width: self.locationState == .indirect ? 10 : 6
 				)
+			}else {
+				self.mapView.removePolyline(
+					sourceID: "pinned_route_source_next",
+					layerID: "pinne_route_layer_next"
+				)
 			}
 			
 			if self.previousCoordinates.count > 2 {
@@ -770,64 +805,15 @@ class MapsViewController: UIViewController {
 					color: .lightGray,
 					width: self.locationState == .indirect ? 10 : 6
 				)
+			}else {
+				self.mapView.removePolyline(
+					sourceID: "pinned_route_source_previous",
+					layerID: "pinne_route_layer_previous"
+				)
 			}
-			self.updateActionSummary()
 			SVProgressHUD.dismiss()
 		}
 		
-	}
-
-	private func updateActionSummary() {
-		let baseOriginName = selectedOriginName ?? "Your location"
-		let baseDestinationName = selectedDestinationName ?? ""
-		let displayedOriginName = isRouteReversed ? baseDestinationName : baseOriginName
-		let displayedDestinationName = isRouteReversed ? baseOriginName : baseDestinationName
-		originTextField.textColor = isRouteReversed ? .black : .primary
-		routeOriginIconView.image = isRouteReversed ? UIImage(named: "ic_marker") : UIImage(systemName: "circle.inset.filled")
-		routeOriginIconView.tintColor = isRouteReversed ? .systemRed : .primary
-		routeDestinationIconView.image = isRouteReversed ? UIImage(systemName: "circle.inset.filled") : UIImage(named: "ic_marker")
-		routeDestinationIconView.tintColor = isRouteReversed ? .primary : .systemRed
-		let text = NSMutableAttributedString(
-			string: displayedDestinationName,
-			attributes: [
-				.font: UIFont.default(size: 17),
-				.foregroundColor: isRouteReversed ? UIColor.primary : UIColor.black
-			]
-		)
-
-		if let summaryDistance = routeDistanceSummaryText() {
-			text.append(NSAttributedString(
-				string: "  (\(summaryDistance))",
-				attributes: [
-					.font: UIFont.defaultMedium(size: 17),
-					.foregroundColor: UIColor.black
-				]
-			))
-		}
-
-		if !destinationTextField.isFirstResponder {
-			destinationTextField.attributedText = text
-		}
-		if !originTextField.isFirstResponder {
-			originTextField.text = displayedOriginName
-		}
-	}
-
-	private func routeDistanceSummaryText() -> String? {
-		if nextCoordinates.count > 2 {
-			return Utils.toDistance(meters: Const.routingProvider.distance(nextCoordinates))
-		}
-
-		guard let pinnedCoordinate else {
-			return nil
-		}
-
-		if let location = currentLocation ?? mapView.userLocation?.location {
-			let droppedPinLocation = CLLocation(latitude: pinnedCoordinate.latitude, longitude: pinnedCoordinate.longitude)
-			return Utils.toDistance(meters: Int(location.distance(from: droppedPinLocation)))
-		}
-
-		return nil
 	}
 	
 	private func moveToCurrentLocation() {
@@ -885,7 +871,7 @@ class MapsViewController: UIViewController {
 	private func updateRoute(userLocation: CLLocation) {
 		let index = findNearestLocationIndex(userLocation)
 		if index < 0 {
-			findRouteTo(pinnedCoordinate!)
+//			findRouteTo(pinnedCoordinate!)
 			return
 		}
 		if previousCoordinates.count > 0 {
@@ -923,34 +909,23 @@ extension MapsViewController: MLNMapViewDelegate {
 		if annotation is MLNUserLocation {
 			return nil
 		}
-		if let ann = annotation as? PlaceAnnotation {
-			if ann.id == "pinned_annotation" {
-				let image = UIImage(named: "places")!.withRenderingMode(.automatic).withTintColor(.red)
-				let annotationV = PlaceAnnotationView(image: image, size: CGSize(width: 40, height: 40), bottom: 20)
-				annotationV.isUserInteractionEnabled = true
-				return annotationV
-			}
-		}
-		return nil
+		let image = UIImage(named: "places")!.withRenderingMode(.automatic).withTintColor(.red)
+		let annotationV = PlaceAnnotationView(image: image, size: CGSize(width: 40, height: 40), bottom: 20)
+		annotationV.isUserInteractionEnabled = true
+		return annotationV
 	}
 	
 	func mapView(_ mapView: MLNMapView, didUpdate userLocation: MLNUserLocation?) {
 		guard let location = userLocation?.location else { return }
+		if currentLocation == nil { return }
 		let previousLocation = currentLocation
 		currentLocation = location
-		updateActionSummary()
-		guard let previousLocation else {
-			return
-		}
-		if selectedOriginCoordinate != nil {
-			return
-		}
 		if nextCoordinates.isEmpty {
 			return
 		}
-		let distance = previousLocation.distance(from: location)
+		let distance = previousLocation!.distance(from: location)
 		
-		if distance > 10 && pinnedCoordinate != nil {
+		if distance > 10 && destinationLoModel != nil {
 			currentLocation = location
 			updateRoute(userLocation: location)
 		}
@@ -985,56 +960,79 @@ extension MapsViewController: UITableViewDelegate {
 		let place = filteredPlaceModels[indexPath.row].place
 		let coordinate = CLLocationCoordinate2D(latitude: place.lat, longitude: place.lng)
 		mapView.setCenter(coordinate, zoomLevel: mapView.zoomLevel, animated: true)
-		switch activeSearchField {
-			case .origin:
-				setOriginLocation(coordinate, originName: place.name ?? "Your location")
-			case .destination:
-				setPinnedLocation(coordinate, destinationName: place.name ?? "Dropped Pin")
+		
+		if activeSearchField == .origin {
+			var newOrigin = originLoModel != nil ? originLoModel : LocationViewModel()
+			newOrigin?.coordinate = coordinate
+			newOrigin?.title = place.name ?? ""
+			newOrigin?.isUserLocation = false
+			originLoModel = newOrigin
+			originTextField.resignFirstResponder()
+		}else {
+			var newDestination = destinationLoModel != nil ? destinationLoModel : LocationViewModel()
+			newDestination?.coordinate = coordinate
+			newDestination?.title = place.name ?? ""
+			newDestination?.isUserLocation = false
+			destinationLoModel = newDestination
+			destinationTextField.resignFirstResponder()
 		}
+		
+		// Setup marker
+		addAnnotationAt(coordinate)
+		
+		// Find route
+		onRouteLocationsUpdate()
+		
+		activeSearchField = .none
+		updateExpandedLayout(animated: true)
 	}
 }
 
 
 extension MapsViewController: UITextFieldDelegate {
 	
+	func textFieldDidBeginEditing(_ textField: UITextField) {
+		if textField === originTextField {
+			originTextField.text = ""
+			activeSearchField = .origin
+		}else {
+			destinationTextField.text = ""
+			activeSearchField = .destination
+		}
+	}
+	
 	func textFieldDidChangeSelection(_ textField: UITextField) {
 		guard textField === destinationTextField || textField === originTextField else { return }
 		activeSearchField = textField === originTextField ? .origin : .destination
-		isActionExpanded = true
 		applySearchResults()
 	}
 	
 	func textFieldShouldReturn(_ textField: UITextField) -> Bool {
 		textField.resignFirstResponder()
+		if activeSearchField == .destination {
+			onUpdateDestinationModel()
+		}else {
+			onUpdateOriginModel()
+		}
+		activeSearchField = .none
+		updateExpandedLayout(animated: true)
 		return true
 	}
 
 	func textFieldDidEndEditing(_ textField: UITextField) {
 		guard textField === destinationTextField || textField === originTextField else { return }
-		if textField === originTextField {
-			originTextField.text = selectedOriginName ?? "Your location"
-		} else {
-			destinationTextField.text = selectedDestinationName
+		if activeSearchField == .origin {
+			onUpdateDestinationModel()
+		}else {
+			onUpdateOriginModel()
 		}
 		applySearchResults()
-		updateActionSummary()
+		
 	}
 	
 	func textFieldShouldBeginEditing(_ textField: UITextField) -> Bool {
 		guard textField === destinationTextField || textField === originTextField else { return true }
 		activeSearchField = textField === originTextField ? .origin : .destination
-		if textField === originTextField {
-			if !hasClearedOriginSearchOnFirstFocus {
-				hasClearedOriginSearchOnFirstFocus = true
-				originTextField.text = ""
-			}
-		} else {
-			if !hasClearedDestinationSearchOnFirstFocus {
-				hasClearedDestinationSearchOnFirstFocus = true
-				destinationTextField.text = ""
-			}
-		}
-		isActionExpanded = true
 		updateExpandedLayout(animated: true)
 		applySearchResults()
 		return true

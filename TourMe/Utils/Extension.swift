@@ -79,6 +79,55 @@ extension String {
 	}
 }
 
+// MARK: - NSAttributedString
+extension NSAttributedString {
+	
+	func paragraphStyleWithLine(string: String, line: CGFloat) -> NSAttributedString {
+		let attributedString = NSMutableAttributedString(string: string)
+		let paragraphStyle = NSMutableParagraphStyle()
+		paragraphStyle.lineSpacing = line
+		attributedString.addAttribute(NSAttributedString.Key.paragraphStyle, value:paragraphStyle, range:NSMakeRange(0, attributedString.length))
+		return attributedString
+	}
+	
+	func multiStyles(lineSpace: CGFloat, resources: [Dictionary<UIFont, UIColor>], texts: [String]) -> NSAttributedString {
+		if resources.count != texts.count {
+			return self
+		}
+		let style = NSMutableParagraphStyle()
+		let para = NSMutableAttributedString()
+		style.lineSpacing = lineSpace
+		
+		for i in 0 ... resources.count - 1 {
+			var font: UIFont!
+			for f in resources[i].keys {
+				font = f
+				break
+			}
+			var color: UIColor!
+			for c in resources[i].values {
+				color = c
+				break
+			}
+			let attributes = [NSAttributedString.Key.font: font ?? UIFont.default(size: 12), NSAttributedString.Key.foregroundColor: color ?? UIColor.primary] as [NSAttributedString.Key : Any]
+			let attrString = NSAttributedString(string: texts[i], attributes: attributes)
+			para.append(attrString)
+		}
+		para.addAttribute(NSAttributedString.Key.paragraphStyle, value: style, range: NSRange(location: 0,length: para.length))
+		return para
+	}
+	
+	/// Returns a new instance of NSAttributedString with same contents and attributes with strike through added.
+	/// - Parameter style: value for style you wish to assign to the text.
+	/// - Returns: a new instance of NSAttributedString with given strike through.
+	func withStrikeThrough(_ style: Double = 1) -> NSAttributedString {
+		let attributedString = NSMutableAttributedString(attributedString: self)
+		attributedString.addAttribute(.strikethroughStyle, value: style, range: NSRange(location: 0, length: string.count))
+		return NSAttributedString(attributedString: attributedString)
+	}
+}
+
+
 extension UIViewController {
 	
 	func showToast(message:String) {
