@@ -9,6 +9,10 @@
 /* Begin PBXBuildFile section */
 		0C2900287A5860722E8F6384 /* Pods_TourMe_Pro.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3048559D04FF5280472A1CD8 /* Pods_TourMe_Pro.framework */; };
 		4779EE79A6CE802EE8A7CA46 /* Pods_TourMe_Dev.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0B434B2DE40292570162B31E /* Pods_TourMe_Dev.framework */; };
+		7505C0792FD15317004D0CAE /* map-style-road.json in Resources */ = {isa = PBXBuildFile; fileRef = 7505C0782FD15317004D0CAE /* map-style-road.json */; };
+		7505C07A2FD15317004D0CAE /* map-style-road.json in Resources */ = {isa = PBXBuildFile; fileRef = 7505C0782FD15317004D0CAE /* map-style-road.json */; };
+		7505C07C2FD1577A004D0CAE /* MapExportTemplateViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7505C07B2FD1575A004D0CAE /* MapExportTemplateViewController.swift */; };
+		7505C07D2FD1577A004D0CAE /* MapExportTemplateViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7505C07B2FD1575A004D0CAE /* MapExportTemplateViewController.swift */; };
 		751114B52E0D29D5001EBE5C /* LoadingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 751114A52E0D29D5001EBE5C /* LoadingViewController.swift */; };
 		751114B62E0D29D5001EBE5C /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 751114A72E0D29D5001EBE5C /* AppDelegate.swift */; };
 		751114B72E0D29D5001EBE5C /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 751114A82E0D29D5001EBE5C /* SceneDelegate.swift */; };
@@ -212,6 +216,8 @@
 		3048559D04FF5280472A1CD8 /* Pods_TourMe_Pro.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TourMe_Pro.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		46BD6E56B830AEB1BC845B6B /* Pods-TourMe-Dev.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TourMe-Dev.debug.xcconfig"; path = "Target Support Files/Pods-TourMe-Dev/Pods-TourMe-Dev.debug.xcconfig"; sourceTree = "<group>"; };
 		65954894073744A709EFC39D /* Pods-TourMe-Pro.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TourMe-Pro.debug.xcconfig"; path = "Target Support Files/Pods-TourMe-Pro/Pods-TourMe-Pro.debug.xcconfig"; sourceTree = "<group>"; };
+		7505C0782FD15317004D0CAE /* map-style-road.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "map-style-road.json"; sourceTree = "<group>"; };
+		7505C07B2FD1575A004D0CAE /* MapExportTemplateViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapExportTemplateViewController.swift; sourceTree = "<group>"; };
 		751114872E0D0849001EBE5C /* TourMe-Pro.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "TourMe-Pro.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		751114A52E0D29D5001EBE5C /* LoadingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingViewController.swift; sourceTree = "<group>"; };
 		751114A72E0D29D5001EBE5C /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -423,6 +429,7 @@
 				751114B12E0D29D5001EBE5C /* Main.storyboard */,
 				751114DA2E0D3D6C001EBE5C /* Localizable.xcstrings */,
 				757D89052EC180EF00F73330 /* map-style-default.json */,
+				7505C0782FD15317004D0CAE /* map-style-road.json */,
 				75D007562FCFEA2B009C66DF /* cambodia.mbtiles */,
 			);
 			path = src;
@@ -677,6 +684,7 @@
 			children = (
 				75EE787A2FC5348900FC96A5 /* Views */,
 				75EE78772FC530C500FC96A5 /* TourMemoriesViewController.swift */,
+				7505C07B2FD1575A004D0CAE /* MapExportTemplateViewController.swift */,
 			);
 			path = Export;
 			sourceTree = "<group>";
@@ -788,6 +796,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7505C0792FD15317004D0CAE /* map-style-road.json in Resources */,
 				751114B82E0D29D5001EBE5C /* Assets.xcassets in Resources */,
 				75D0075A2FCFEA3D009C66DF /* order in Resources */,
 				751114DC2E0D3D6C001EBE5C /* Localizable.xcstrings in Resources */,
@@ -808,6 +817,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7505C07A2FD15317004D0CAE /* map-style-road.json in Resources */,
 				751114C32E0D2E30001EBE5C /* Assets.xcassets in Resources */,
 				75D0075B2FCFEA3D009C66DF /* order in Resources */,
 				751114DB2E0D3D6C001EBE5C /* Localizable.xcstrings in Resources */,
@@ -891,6 +901,7 @@
 				75C4FBBD2E126DD6006254E5 /* RoundButton.swift in Sources */,
 				75C4FBC32E13D8EC006254E5 /* ProfileTableViewCell.swift in Sources */,
 				75C4FBC62E13E037006254E5 /* CellID.swift in Sources */,
+				7505C07D2FD1577A004D0CAE /* MapExportTemplateViewController.swift in Sources */,
 				751114D92E0D3D03001EBE5C /* Variable.swift in Sources */,
 				7535DB2B2E3C6BB60076FCDA /* SettingViewCell.swift in Sources */,
 				757043222E30A23E00328637 /* RoadTourViewCell.swift in Sources */,
@@ -979,6 +990,7 @@
 				75C4FBBC2E126DD6006254E5 /* RoundButton.swift in Sources */,
 				75C4FBC22E13D8EC006254E5 /* ProfileTableViewCell.swift in Sources */,
 				75C4FBC52E13E037006254E5 /* CellID.swift in Sources */,
+				7505C07C2FD1577A004D0CAE /* MapExportTemplateViewController.swift in Sources */,
 				751114D82E0D3D03001EBE5C /* Variable.swift in Sources */,
 				7535DB2C2E3C6BB60076FCDA /* SettingViewCell.swift in Sources */,
 				757043212E30A23E00328637 /* RoadTourViewCell.swift in Sources */,

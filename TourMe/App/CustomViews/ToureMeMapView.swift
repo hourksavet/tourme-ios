@@ -10,8 +10,8 @@ import MapLibre
 
 class ToureMeMapView: MLNMapView {
 	
-	init() {
-		if let stylePath = Bundle.main.path(forResource: "map-style-default", ofType: "json"),
+	init(style: String? = nil) {
+		if let stylePath = Bundle.main.path(forResource: style != nil ? style! :"map-style-default", ofType: "json"),
 		   let mbtilesPath = Bundle.main.path(forResource: "cambodia", ofType: "mbtiles") {
 			// 1️⃣ Read the base style
 			var styleText = try! String(contentsOfFile: stylePath)
@@ -21,7 +21,7 @@ class ToureMeMapView: MLNMapView {
 
 			// 3️⃣ Create a guaranteed existing temp directory
 			let tempDir = FileManager.default.temporaryDirectory
-			let tempStyleURL = tempDir.appendingPathComponent("style-runtime.json")
+			let tempStyleURL = tempDir.appendingPathComponent("style-runtime\(String(describing: style != nil ? style : "")).json")
 
 			// 4️⃣ Write the file safely
 			try! styleText.write(to: tempStyleURL, atomically: true, encoding: .utf8)
