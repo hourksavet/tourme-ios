@@ -470,7 +470,8 @@ class MapsViewController: UIViewController {
 		suggestionTableView.dataSource = self
 		suggestionTableView.delegate = self
 		
-		originLoModel = LocationViewModel(isUserLocation: true, title: "Your location", coordinate: nil, distance: 0)
+		originLoModel = LocationViewModel(isUserLocation: true, title: "Your location", coordinate: locationManager.location?.coordinate, distance: 0)
+		destinationLoModel = LocationViewModel(isUserLocation: false)
 		originTextField.text = originLoModel?.title
 		
 		reloadRecentPlaces()
@@ -659,41 +660,26 @@ class MapsViewController: UIViewController {
 	
 	private func onRouteLocationsUpdate() {
 		guard let userCoor = mapView.userLocation?.coordinate else { return }
-		let originCoor = originLoModel?.coordinate ?? userCoor
+		let originCoor = originLoModel?.coordinate ?? (originLoModel!.isUserLocation ? userCoor : nil)
 		let destinationCoor = destinationLoModel?.coordinate
 		
-		if destinationCoor == nil { return }
+		if originCoor == nil || destinationCoor == nil { return }
 		
 		SVProgressHUD.show(withStatus: "finding_route...".localized())
 		DispatchQueue.global(qos: .default).async {
-			let routeCoordinates = Const.routingProvider.coordinates(originCoor, destinationCoor!)
+			let routeCoordinates = Const.routingProvider.coordinates(originCoor!, destinationCoor!)
 			
 			let distance = Const.routingProvider.distance(routeCoordinates)
 			DispatchQueue.main.async {
 				if self.destinationLoModel != nil {
 					self.destinationLoModel?.distance = distance
 				}
-				self.appendDestinationAddress(text: Utils.toDistance(meters: distance))
+				self.onUpdateDestinationModel()
 			}
 			
 			self.nextCoordinates = routeCoordinates
 			self.drawRouteOnMap()
 		}
-	}
-
-	private func appendDestinationAddress(text: String) {
-		destinationTextField.attributedText = NSAttributedString().multiStyles(
-			lineSpace: 0,
-			resources: [
-				[.defaultMedium(size: 17): .black],
-				[.defaultMedium(size: 17): .black],
-			],
-			texts: [
-				destinationLoModel?.title ?? "",
-				" ( \(text) )"
-			]
-			
-		)
 	}
 
 	@objc private func onChooseOnMap() {

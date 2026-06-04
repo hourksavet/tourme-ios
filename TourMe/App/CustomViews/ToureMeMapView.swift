@@ -11,7 +11,7 @@ import MapLibre
 class ToureMeMapView: MLNMapView {
 	
 	init() {
-		if let stylePath = Bundle.main.path(forResource: "map-style", ofType: "json"),
+		if let stylePath = Bundle.main.path(forResource: "map-style-default", ofType: "json"),
 		   let mbtilesPath = Bundle.main.path(forResource: "cambodia", ofType: "mbtiles") {
 			// 1️⃣ Read the base style
 			var styleText = try! String(contentsOfFile: stylePath)

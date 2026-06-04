@@ -132,8 +132,8 @@
 		757908602E28E227007884A3 /* BaseTourMeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7579085E2E28E227007884A3 /* BaseTourMeViewController.swift */; };
 		757908622E28E917007884A3 /* TourMeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 757908612E28E917007884A3 /* TourMeViewController.swift */; };
 		757908632E28E917007884A3 /* TourMeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 757908612E28E917007884A3 /* TourMeViewController.swift */; };
-		757D89062EC180EF00F73330 /* map-style.json in Resources */ = {isa = PBXBuildFile; fileRef = 757D89052EC180EF00F73330 /* map-style.json */; };
-		757D89072EC180EF00F73330 /* map-style.json in Resources */ = {isa = PBXBuildFile; fileRef = 757D89052EC180EF00F73330 /* map-style.json */; };
+		757D89062EC180EF00F73330 /* map-style-default.json in Resources */ = {isa = PBXBuildFile; fileRef = 757D89052EC180EF00F73330 /* map-style-default.json */; };
+		757D89072EC180EF00F73330 /* map-style-default.json in Resources */ = {isa = PBXBuildFile; fileRef = 757D89052EC180EF00F73330 /* map-style-default.json */; };
 		758AD1A32FBEF95900722DD1 /* TourMemberLinkedViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 758AD1A22FBEF94100722DD1 /* TourMemberLinkedViewController.swift */; };
 		758AD1A42FBEF95900722DD1 /* TourMemberLinkedViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 758AD1A22FBEF94100722DD1 /* TourMemberLinkedViewController.swift */; };
 		758AD1A62FC0003900722DD1 /* OngoingToureViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 758AD1A52FC0002200722DD1 /* OngoingToureViewController.swift */; };
@@ -276,7 +276,7 @@
 		757218E52ED7EC5200FD545F /* VisitPlace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisitPlace.swift; sourceTree = "<group>"; };
 		7579085E2E28E227007884A3 /* BaseTourMeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseTourMeViewController.swift; sourceTree = "<group>"; };
 		757908612E28E917007884A3 /* TourMeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TourMeViewController.swift; sourceTree = "<group>"; };
-		757D89052EC180EF00F73330 /* map-style.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "map-style.json"; sourceTree = "<group>"; };
+		757D89052EC180EF00F73330 /* map-style-default.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "map-style-default.json"; sourceTree = "<group>"; };
 		758AD1A22FBEF94100722DD1 /* TourMemberLinkedViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TourMemberLinkedViewController.swift; sourceTree = "<group>"; };
 		758AD1A52FC0002200722DD1 /* OngoingToureViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OngoingToureViewController.swift; sourceTree = "<group>"; };
 		759030502FBAB6C8006B93B8 /* TabTourViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabTourViewController.swift; sourceTree = "<group>"; };
@@ -422,7 +422,7 @@
 				751114AF2E0D29D5001EBE5C /* LaunchScreen.storyboard */,
 				751114B12E0D29D5001EBE5C /* Main.storyboard */,
 				751114DA2E0D3D6C001EBE5C /* Localizable.xcstrings */,
-				757D89052EC180EF00F73330 /* map-style.json */,
+				757D89052EC180EF00F73330 /* map-style-default.json */,
 				75D007562FCFEA2B009C66DF /* cambodia.mbtiles */,
 			);
 			path = src;
@@ -792,7 +792,7 @@
 				75D0075A2FCFEA3D009C66DF /* order in Resources */,
 				751114DC2E0D3D6C001EBE5C /* Localizable.xcstrings in Resources */,
 				751114BA2E0D29D5001EBE5C /* LaunchScreen.storyboard in Resources */,
-				757D89072EC180EF00F73330 /* map-style.json in Resources */,
+				757D89072EC180EF00F73330 /* map-style-default.json in Resources */,
 				751114CD2E0D2EDE001EBE5C /* TourMeDev-Info.plist in Resources */,
 				75D007682FCFEA47009C66DF /* longitude in Resources */,
 				75D0076A2FCFEA47009C66DF /* head in Resources */,
@@ -812,7 +812,7 @@
 				75D0075B2FCFEA3D009C66DF /* order in Resources */,
 				751114DB2E0D3D6C001EBE5C /* Localizable.xcstrings in Resources */,
 				751114C42E0D2E30001EBE5C /* LaunchScreen.storyboard in Resources */,
-				757D89062EC180EF00F73330 /* map-style.json in Resources */,
+				757D89062EC180EF00F73330 /* map-style-default.json in Resources */,
 				751114CC2E0D2EDE001EBE5C /* TourMeDev-Info.plist in Resources */,
 				75D007622FCFEA47009C66DF /* longitude in Resources */,
 				75D007642FCFEA47009C66DF /* head in Resources */,
