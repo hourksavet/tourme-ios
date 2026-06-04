@@ -13,6 +13,8 @@
 		7505C07A2FD15317004D0CAE /* map-style-road.json in Resources */ = {isa = PBXBuildFile; fileRef = 7505C0782FD15317004D0CAE /* map-style-road.json */; };
 		7505C07C2FD1577A004D0CAE /* MapExportTemplateViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7505C07B2FD1575A004D0CAE /* MapExportTemplateViewController.swift */; };
 		7505C07D2FD1577A004D0CAE /* MapExportTemplateViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7505C07B2FD1575A004D0CAE /* MapExportTemplateViewController.swift */; };
+		7505C07F2FD163E7004D0CAE /* MapCustomCheckListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7505C07E2FD163CA004D0CAE /* MapCustomCheckListViewController.swift */; };
+		7505C0802FD163E7004D0CAE /* MapCustomCheckListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7505C07E2FD163CA004D0CAE /* MapCustomCheckListViewController.swift */; };
 		751114B52E0D29D5001EBE5C /* LoadingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 751114A52E0D29D5001EBE5C /* LoadingViewController.swift */; };
 		751114B62E0D29D5001EBE5C /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 751114A72E0D29D5001EBE5C /* AppDelegate.swift */; };
 		751114B72E0D29D5001EBE5C /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 751114A82E0D29D5001EBE5C /* SceneDelegate.swift */; };
@@ -218,6 +220,7 @@
 		65954894073744A709EFC39D /* Pods-TourMe-Pro.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TourMe-Pro.debug.xcconfig"; path = "Target Support Files/Pods-TourMe-Pro/Pods-TourMe-Pro.debug.xcconfig"; sourceTree = "<group>"; };
 		7505C0782FD15317004D0CAE /* map-style-road.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "map-style-road.json"; sourceTree = "<group>"; };
 		7505C07B2FD1575A004D0CAE /* MapExportTemplateViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapExportTemplateViewController.swift; sourceTree = "<group>"; };
+		7505C07E2FD163CA004D0CAE /* MapCustomCheckListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapCustomCheckListViewController.swift; sourceTree = "<group>"; };
 		751114872E0D0849001EBE5C /* TourMe-Pro.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "TourMe-Pro.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		751114A52E0D29D5001EBE5C /* LoadingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingViewController.swift; sourceTree = "<group>"; };
 		751114A72E0D29D5001EBE5C /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -685,6 +688,7 @@
 				75EE787A2FC5348900FC96A5 /* Views */,
 				75EE78772FC530C500FC96A5 /* TourMemoriesViewController.swift */,
 				7505C07B2FD1575A004D0CAE /* MapExportTemplateViewController.swift */,
+				7505C07E2FD163CA004D0CAE /* MapCustomCheckListViewController.swift */,
 			);
 			path = Export;
 			sourceTree = "<group>";
@@ -952,6 +956,7 @@
 				7541D0372E1BCB4400DF14CA /* IconTextViewCell.swift in Sources */,
 				755C7D0C2E16658500AA2619 /* PaddingLabel.swift in Sources */,
 				7535DB2E2E3C72D60076FCDA /* BigProfileViewCell.swift in Sources */,
+				7505C07F2FD163E7004D0CAE /* MapCustomCheckListViewController.swift in Sources */,
 				755C7D152E166DB900AA2619 /* DiscoverViewController.swift in Sources */,
 				7541D02E2E1BC91100DF14CA /* SavedTourDetailsViewController.swift in Sources */,
 				754C8BF82E17BE8E0013E04E /* MemoriesCell.swift in Sources */,
@@ -1041,6 +1046,7 @@
 				7541D0382E1BCB4400DF14CA /* IconTextViewCell.swift in Sources */,
 				755C7D0B2E16658500AA2619 /* PaddingLabel.swift in Sources */,
 				7535DB2F2E3C72D60076FCDA /* BigProfileViewCell.swift in Sources */,
+				7505C0802FD163E7004D0CAE /* MapCustomCheckListViewController.swift in Sources */,
 				755C7D142E166DB900AA2619 /* DiscoverViewController.swift in Sources */,
 				7541D02F2E1BC91100DF14CA /* SavedTourDetailsViewController.swift in Sources */,
 				754C8BF72E17BE8E0013E04E /* MemoriesCell.swift in Sources */,

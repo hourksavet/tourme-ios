@@ -37,13 +37,32 @@ class MapExportTemplateViewController: UIViewController {
 	
 	override func viewDidLoad() {
 		super.viewDidLoad()
+		title = "Paper Map"
+		view.backgroundColor = .screenBackground
+		navigationItem.rightBarButtonItem = UIBarButtonItem(
+			image: UIImage(systemName: "slider.horizontal.3"),
+			style: .plain,
+			target: self,
+			action: #selector(openMapChecklist)
+		)
+		
 		let locationManager = CLLocationManager()
 		locationManager.requestWhenInUseAuthorization()
 		locationManager.startUpdatingLocation()
 		if let location = locationManager.location {
-			mapView.setCenter(location.coordinate, zoomLevel: 16, animated: false)
+			mapView.setCenter(location.coordinate, zoomLevel: 12, animated: false)
 		}
 		locationManager.stopUpdatingLocation()
+	}
+
+	@objc private func openMapChecklist() {
+//		let checklistViewController = MapCustomCheckListViewController()
+//		checklistViewController.onApplyStyleJSON = { [weak self] styleJSON in
+//			self?.mapView.applyStyleJSON(styleJSON, cacheKey: "map-export-preview")
+//		}
+//		let viewController = checklistViewController.toNavigationController()
+//		viewController.modalPresentationStyle = .overFullScreen
+//		present(viewController, animated: true)
 	}
 }
 
