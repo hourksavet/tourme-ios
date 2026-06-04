@@ -119,7 +119,11 @@ class TabTourViewController: UIViewController {
 
 		NotificationCenter.default.addObserver(self, selector: #selector(onEndedTour), name: Utils.observerName(.endedTour), object: nil)
 		
-        switchToTab(.ongoing)
+            switchToTab(preferredTab())
+    }
+
+    private func preferredTab() -> TourTab {
+        ongoingVC.tour == nil ? .saved : .ongoing
     }
 
     @objc private func segmentChanged(_ sender: UISegmentedControl) {
@@ -152,7 +156,7 @@ class TabTourViewController: UIViewController {
 	}
 	
 	@objc private func onEndedTour() {
-		addTourButton.isHidden = false
+        switchToTab(.saved)
 	}
 }
 

@@ -183,6 +183,17 @@ class MapsViewController: UIViewController {
 		button.translatesAutoresizingMaskIntoConstraints = false
 		return button
 	}()
+
+	private lazy var clearRouteButton: UIButton = {
+		let button = UIButton(type: .system)
+		button.setImage(UIImage(named: "broom"), for: .normal)
+		button.tintColor = .primary
+		button.backgroundColor = .white
+		button.alpha = 0.9
+		button.addTarget(self, action: #selector(onClearRouteSetup), for: .touchUpInside)
+		button.translatesAutoresizingMaskIntoConstraints = false
+		return button
+	}()
 	
 	private lazy var zoomControlView: UIView = {
 		let view = UIView()
@@ -271,6 +282,7 @@ class MapsViewController: UIViewController {
 		view.addSubview(bkStatusView)
 		view.addSubview(locationBtn)
 		view.addSubview(zoomControlView)
+		view.addSubview(clearRouteButton)
 		view.addSubview(routeSetupContentView)
 		bkStatusView.addSubview(statusEffectView)
 		
@@ -298,6 +310,11 @@ class MapsViewController: UIViewController {
 			zoomControlView.widthAnchor.constraint(equalToConstant: 50),
 			zoomControlView.bottomAnchor.constraint(equalTo: locationBtn.topAnchor, constant: -10),
 			zoomControlView.trailingAnchor.constraint(equalTo: locationBtn.trailingAnchor),
+			
+			clearRouteButton.widthAnchor.constraint(equalToConstant: 30),
+			clearRouteButton.heightAnchor.constraint(equalToConstant: 30),
+			clearRouteButton.bottomAnchor.constraint(equalTo: zoomControlView.topAnchor, constant: -10),
+			clearRouteButton.trailingAnchor.constraint(equalTo: locationBtn.trailingAnchor),
 			
 			routeSetupContentView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
 			routeSetupContentView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
@@ -382,7 +399,7 @@ class MapsViewController: UIViewController {
 			routeDestinationIconView.bottomAnchor.constraint(equalTo: routeSetupHeaderView.bottomAnchor, constant: -15),
 
 			swapRouteButton.widthAnchor.constraint(equalToConstant: 36),
-			swapRouteButton.heightAnchor.constraint(equalToConstant: 44),
+			swapRouteButton.heightAnchor.constraint(equalToConstant: 36),
 			swapRouteButton.centerYAnchor.constraint(equalTo: routeSetupHeaderView.centerYAnchor),
 			swapRouteButton.trailingAnchor.constraint(equalTo: routeSetupHeaderView.trailingAnchor, constant: -10),
 
@@ -472,6 +489,7 @@ class MapsViewController: UIViewController {
 		routeSetupContentView.addShadow(radius: 8)
 		routeSetupContentView.layer.cornerRadius = 16
 		zoomControlView.addShadow(radius: 8)
+		clearRouteButton.addShadow(radius: 4)
 		routeSetupDividerView.cornerRadius()
 		statusFadeMask.frame = bkStatusView.bounds
 		statusFadeMask.colors = [
@@ -667,7 +685,7 @@ class MapsViewController: UIViewController {
 		destinationTextField.attributedText = NSAttributedString().multiStyles(
 			lineSpace: 0,
 			resources: [
-				[.default(size: 17): .black],
+				[.defaultMedium(size: 17): .black],
 				[.defaultMedium(size: 17): .black],
 			],
 			texts: [
@@ -756,13 +774,14 @@ class MapsViewController: UIViewController {
 		updateExpandedLayout(isExpend: false)
 	}
 
-	private func clearActionState() {
+	@objc private func onClearRouteSetup() {
 		SVProgressHUD.dismiss()
 		
 		editingRouteType = .destination
 		
 		originTextField.resignFirstResponder()
 		destinationTextField.resignFirstResponder()
+		view.endEditing(true)
 		
 		mapView.removeAnnotation(id: "origin_pinned_annotation")
 		mapView.removeAnnotation(id: "destination_pinned_annotation")
@@ -772,10 +791,10 @@ class MapsViewController: UIViewController {
 		
 		previousCoordinates.removeAll()
 		nextCoordinates.removeAll()
-		filteredPlaceModels.removeAll()
-		
-		originTextField.text = nil
-		destinationTextField.text = nil
+		filteredPlaceModels = allPlaceModels
+		originLoModel = LocationViewModel(isUserLocation: true, title: "Your location", coordinate: nil, distance: 0)
+		destinationLoModel = nil
+		suggestionTableView.reloadData()
 		
 		updateExpandedLayout(isExpend: false)
 	}
