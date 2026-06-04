@@ -17,10 +17,9 @@ private struct LocationViewModel {
 	var distance: Int = 0
 }
 
-private enum SearchFieldState {
+private enum EditRouteType {
 	case origin
 	case destination
-	case none
 }
 
 class MapsViewController: UIViewController {
@@ -55,7 +54,7 @@ class MapsViewController: UIViewController {
 		return button
 	}()
 	
-	private lazy var actionView: UIView = {
+	private lazy var routeSetupContentView: UIView = {
 		let view = UIView()
 		view.backgroundColor = .white
 		view.alpha = 0.96
@@ -64,21 +63,13 @@ class MapsViewController: UIViewController {
 		return view
 	}()
 
-	private lazy var actionHeaderView: UIView = {
+	private lazy var routeSetupHeaderView: UIView = {
 		let view = UIView()
 		view.translatesAutoresizingMaskIntoConstraints = false
 		return view
 	}()
 
-	private lazy var actionHeaderTapButton: UIButton = {
-		let button = UIButton(type: .custom)
-		button.backgroundColor = .clear
-		button.addTarget(self, action: #selector(onToggleActionExpanded), for: .touchUpInside)
-		button.translatesAutoresizingMaskIntoConstraints = false
-		return button
-	}()
-
-	private lazy var actionExpandedView: UIView = {
+	private lazy var routeSetupExpandedView: UIView = {
 		let view = UIView()
 		view.isHidden = true
 		view.translatesAutoresizingMaskIntoConstraints = false
@@ -162,26 +153,17 @@ class MapsViewController: UIViewController {
 		return textField
 	}()
 
-	private lazy var actionDividerView: UIView = {
+	private lazy var routeSetupDividerView: UIView = {
 		let view = UIView()
 		view.backgroundColor = UIColor.black.withAlphaComponent(0.1)
 		view.translatesAutoresizingMaskIntoConstraints = false
 		return view
 	}()
 
-	private lazy var destinationValueLabel: UILabel = {
-		let label = UILabel()
-		label.font = .default(size: 17)
-		label.textColor = .black
-		label.text = "Dropped Pin"
-		label.translatesAutoresizingMaskIntoConstraints = false
-		return label
-	}()
-
 	private lazy var destinationTextField: UITextField = {
 		let textField = UITextField()
 		textField.placeholder = "Search place"
-		textField.font = .default(size: 17)
+		textField.font = .defaultMedium(size: 17)
 		textField.textColor = .black
 		textField.tintColor = .primary
 		textField.returnKeyType = .done
@@ -193,7 +175,7 @@ class MapsViewController: UIViewController {
 		return textField
 	}()
 
-	private lazy var actionSwapButton: UIButton = {
+	private lazy var swapRouteButton: UIButton = {
 		let button = UIButton(type: .system)
 		button.setImage(UIImage(named: "switch_location"), for: .normal)
 		button.tintColor = .black
@@ -258,10 +240,10 @@ class MapsViewController: UIViewController {
 	private var allPlaceModels: [PlaceListModel] = []
 	private var filteredPlaceModels: [PlaceListModel] = []
 	
-	private var activeSearchField: SearchFieldState = .none
+	private var editingRouteType: EditRouteType = .destination
 	
-	private var actionExpandedHeightConstraint: NSLayoutConstraint?
-	private var actionViewBottomConstraint: NSLayoutConstraint?
+	private var routeSetupExpandedHeightAnchor: NSLayoutConstraint?
+	private var routeSetupBottomAnchor: NSLayoutConstraint?
 	
 	private var isChangingMapPitch: Bool = false
 	
@@ -289,7 +271,7 @@ class MapsViewController: UIViewController {
 		view.addSubview(bkStatusView)
 		view.addSubview(locationBtn)
 		view.addSubview(zoomControlView)
-		view.addSubview(actionView)
+		view.addSubview(routeSetupContentView)
 		bkStatusView.addSubview(statusEffectView)
 		
 		NSLayoutConstraint.activate([
@@ -317,54 +299,53 @@ class MapsViewController: UIViewController {
 			zoomControlView.bottomAnchor.constraint(equalTo: locationBtn.topAnchor, constant: -10),
 			zoomControlView.trailingAnchor.constraint(equalTo: locationBtn.trailingAnchor),
 			
-			actionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-			actionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
-			actionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -10),
+			routeSetupContentView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+			routeSetupContentView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
+			routeSetupContentView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -10),
 		])
 		
-		actionView.addSubview(actionHeaderView)
-		actionView.addSubview(actionExpandedView)
-		actionHeaderView.addSubview(routeOriginIconView)
-		actionHeaderView.addSubview(routeConnectorStackView)
-		actionHeaderView.addSubview(routeDestinationIconView)
-		actionHeaderView.addSubview(originTextField)
-		actionHeaderView.addSubview(actionDividerView)
-		actionHeaderView.addSubview(destinationTextField)
-		actionHeaderView.addSubview(actionSwapButton)
-		actionHeaderView.addSubview(actionHeaderTapButton)
-		actionExpandedView.addSubview(currentLocationButton)
-		actionExpandedView.addSubview(chooseOnMapButton)
-		actionExpandedView.addSubview(suggestionTableView)
+		routeSetupContentView.addSubview(routeSetupHeaderView)
+		routeSetupContentView.addSubview(routeSetupExpandedView)
+		routeSetupHeaderView.addSubview(routeOriginIconView)
+		routeSetupHeaderView.addSubview(routeConnectorStackView)
+		routeSetupHeaderView.addSubview(routeDestinationIconView)
+		routeSetupHeaderView.addSubview(originTextField)
+		routeSetupHeaderView.addSubview(routeSetupDividerView)
+		routeSetupHeaderView.addSubview(destinationTextField)
+		routeSetupHeaderView.addSubview(swapRouteButton)
+		routeSetupExpandedView.addSubview(currentLocationButton)
+		routeSetupExpandedView.addSubview(chooseOnMapButton)
+		routeSetupExpandedView.addSubview(suggestionTableView)
 
 		let leftQuickActionGuide = UILayoutGuide()
 		let rightQuickActionGuide = UILayoutGuide()
-		actionExpandedView.addLayoutGuide(leftQuickActionGuide)
-		actionExpandedView.addLayoutGuide(rightQuickActionGuide)
+		routeSetupExpandedView.addLayoutGuide(leftQuickActionGuide)
+		routeSetupExpandedView.addLayoutGuide(rightQuickActionGuide)
 
-		actionExpandedHeightConstraint = actionExpandedView.heightAnchor.constraint(equalToConstant: 0)
-		actionExpandedHeightConstraint?.isActive = true
-		actionViewBottomConstraint = actionView.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -8)
-		actionViewBottomConstraint?.isActive = true
+		routeSetupExpandedHeightAnchor = routeSetupExpandedView.heightAnchor.constraint(equalToConstant: 0)
+		routeSetupExpandedHeightAnchor?.isActive = true
+		routeSetupBottomAnchor = routeSetupContentView.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -8)
+		routeSetupBottomAnchor?.isActive = true
 
 		NSLayoutConstraint.activate([
-			actionHeaderView.topAnchor.constraint(equalTo: actionView.topAnchor),
-			actionHeaderView.leadingAnchor.constraint(equalTo: actionView.leadingAnchor),
-			actionHeaderView.trailingAnchor.constraint(equalTo: actionView.trailingAnchor),
-			actionHeaderView.heightAnchor.constraint(equalToConstant: 120),
+			routeSetupHeaderView.topAnchor.constraint(equalTo: routeSetupContentView.topAnchor),
+			routeSetupHeaderView.leadingAnchor.constraint(equalTo: routeSetupContentView.leadingAnchor),
+			routeSetupHeaderView.trailingAnchor.constraint(equalTo: routeSetupContentView.trailingAnchor),
+			routeSetupHeaderView.heightAnchor.constraint(equalToConstant: 120),
 
-			actionExpandedView.topAnchor.constraint(equalTo: actionHeaderView.bottomAnchor),
-			actionExpandedView.leadingAnchor.constraint(equalTo: actionView.leadingAnchor),
-			actionExpandedView.trailingAnchor.constraint(equalTo: actionView.trailingAnchor),
-			actionExpandedView.bottomAnchor.constraint(equalTo: actionView.bottomAnchor),
+			routeSetupExpandedView.topAnchor.constraint(equalTo: routeSetupHeaderView.bottomAnchor),
+			routeSetupExpandedView.leadingAnchor.constraint(equalTo: routeSetupContentView.leadingAnchor),
+			routeSetupExpandedView.trailingAnchor.constraint(equalTo: routeSetupContentView.trailingAnchor),
+			routeSetupExpandedView.bottomAnchor.constraint(equalTo: routeSetupContentView.bottomAnchor),
 
-			leftQuickActionGuide.topAnchor.constraint(equalTo: actionExpandedView.topAnchor),
-			leftQuickActionGuide.leadingAnchor.constraint(equalTo: actionExpandedView.leadingAnchor),
-			leftQuickActionGuide.trailingAnchor.constraint(equalTo: actionExpandedView.centerXAnchor),
+			leftQuickActionGuide.topAnchor.constraint(equalTo: routeSetupExpandedView.topAnchor),
+			leftQuickActionGuide.leadingAnchor.constraint(equalTo: routeSetupExpandedView.leadingAnchor),
+			leftQuickActionGuide.trailingAnchor.constraint(equalTo: routeSetupExpandedView.centerXAnchor),
 			leftQuickActionGuide.heightAnchor.constraint(equalToConstant: 42),
 
-			rightQuickActionGuide.topAnchor.constraint(equalTo: actionExpandedView.topAnchor),
-			rightQuickActionGuide.leadingAnchor.constraint(equalTo: actionExpandedView.centerXAnchor),
-			rightQuickActionGuide.trailingAnchor.constraint(equalTo: actionExpandedView.trailingAnchor),
+			rightQuickActionGuide.topAnchor.constraint(equalTo: routeSetupExpandedView.topAnchor),
+			rightQuickActionGuide.leadingAnchor.constraint(equalTo: routeSetupExpandedView.centerXAnchor),
+			rightQuickActionGuide.trailingAnchor.constraint(equalTo: routeSetupExpandedView.trailingAnchor),
 			rightQuickActionGuide.heightAnchor.constraint(equalToConstant: 42),
 
 			currentLocationButton.leadingAnchor.constraint(equalTo: leftQuickActionGuide.leadingAnchor, constant: 16),
@@ -372,23 +353,23 @@ class MapsViewController: UIViewController {
 			currentLocationButton.trailingAnchor.constraint(lessThanOrEqualTo: leftQuickActionGuide.trailingAnchor, constant: -8),
 			currentLocationButton.heightAnchor.constraint(equalToConstant: 42),
 
-			chooseOnMapButton.topAnchor.constraint(equalTo: actionExpandedView.topAnchor),
+			chooseOnMapButton.topAnchor.constraint(equalTo: routeSetupExpandedView.topAnchor),
 			chooseOnMapButton.centerXAnchor.constraint(equalTo: rightQuickActionGuide.centerXAnchor),
 			chooseOnMapButton.leadingAnchor.constraint(greaterThanOrEqualTo: rightQuickActionGuide.leadingAnchor, constant: 8),
 			chooseOnMapButton.trailingAnchor.constraint(lessThanOrEqualTo: rightQuickActionGuide.trailingAnchor, constant: -16),
 			chooseOnMapButton.heightAnchor.constraint(equalToConstant: 42),
 
 			suggestionTableView.topAnchor.constraint(equalTo: currentLocationButton.bottomAnchor, constant: 2),
-			suggestionTableView.leadingAnchor.constraint(equalTo: actionExpandedView.leadingAnchor),
-			suggestionTableView.trailingAnchor.constraint(equalTo: actionExpandedView.trailingAnchor),
-			suggestionTableView.bottomAnchor.constraint(equalTo: actionExpandedView.bottomAnchor, constant: -15)
+			suggestionTableView.leadingAnchor.constraint(equalTo: routeSetupExpandedView.leadingAnchor),
+			suggestionTableView.trailingAnchor.constraint(equalTo: routeSetupExpandedView.trailingAnchor),
+			suggestionTableView.bottomAnchor.constraint(equalTo: routeSetupExpandedView.bottomAnchor, constant: -15)
 		])
 
 		NSLayoutConstraint.activate([
 			routeOriginIconView.widthAnchor.constraint(equalToConstant: 22),
 			routeOriginIconView.heightAnchor.constraint(equalToConstant: 22),
-			routeOriginIconView.topAnchor.constraint(equalTo: actionHeaderView.topAnchor, constant: 15),
-			routeOriginIconView.leadingAnchor.constraint(equalTo: actionHeaderView.leadingAnchor, constant: 15),
+			routeOriginIconView.topAnchor.constraint(equalTo: routeSetupHeaderView.topAnchor, constant: 15),
+			routeOriginIconView.leadingAnchor.constraint(equalTo: routeSetupHeaderView.leadingAnchor, constant: 15),
 			
 			routeConnectorStackView.topAnchor.constraint(equalTo: routeOriginIconView.bottomAnchor, constant: 6),
 			routeConnectorStackView.centerXAnchor.constraint(equalTo: routeOriginIconView.centerXAnchor),
@@ -397,33 +378,28 @@ class MapsViewController: UIViewController {
 			routeDestinationIconView.widthAnchor.constraint(equalToConstant: 22),
 			routeDestinationIconView.heightAnchor.constraint(equalToConstant: 22),
 			routeDestinationIconView.topAnchor.constraint(equalTo: routeConnectorStackView.bottomAnchor),
-			routeDestinationIconView.leadingAnchor.constraint(equalTo: actionHeaderView.leadingAnchor, constant: 15),
-			routeDestinationIconView.bottomAnchor.constraint(equalTo: actionHeaderView.bottomAnchor, constant: -15),
+			routeDestinationIconView.leadingAnchor.constraint(equalTo: routeSetupHeaderView.leadingAnchor, constant: 15),
+			routeDestinationIconView.bottomAnchor.constraint(equalTo: routeSetupHeaderView.bottomAnchor, constant: -15),
 
-			actionSwapButton.widthAnchor.constraint(equalToConstant: 36),
-			actionSwapButton.heightAnchor.constraint(equalToConstant: 44),
-			actionSwapButton.centerYAnchor.constraint(equalTo: actionHeaderView.centerYAnchor),
-			actionSwapButton.trailingAnchor.constraint(equalTo: actionHeaderView.trailingAnchor, constant: -10),
+			swapRouteButton.widthAnchor.constraint(equalToConstant: 36),
+			swapRouteButton.heightAnchor.constraint(equalToConstant: 44),
+			swapRouteButton.centerYAnchor.constraint(equalTo: routeSetupHeaderView.centerYAnchor),
+			swapRouteButton.trailingAnchor.constraint(equalTo: routeSetupHeaderView.trailingAnchor, constant: -10),
 
-			originTextField.topAnchor.constraint(equalTo: actionHeaderView.topAnchor, constant: 8),
+			originTextField.topAnchor.constraint(equalTo: routeSetupHeaderView.topAnchor, constant: 8),
 			originTextField.leadingAnchor.constraint(equalTo: routeOriginIconView.trailingAnchor, constant: 10),
-			originTextField.trailingAnchor.constraint(equalTo: actionSwapButton.leadingAnchor, constant: -12),
+			originTextField.trailingAnchor.constraint(equalTo: swapRouteButton.leadingAnchor, constant: -12),
 			originTextField.heightAnchor.constraint(equalToConstant: 36),
 
-			actionDividerView.heightAnchor.constraint(equalToConstant: 1),
-			actionDividerView.centerYAnchor.constraint(equalTo: routeConnectorStackView.centerYAnchor),
-			actionDividerView.leadingAnchor.constraint(equalTo: originTextField.leadingAnchor),
-			actionDividerView.trailingAnchor.constraint(equalTo: actionSwapButton.leadingAnchor, constant: -12),
+			routeSetupDividerView.heightAnchor.constraint(equalToConstant: 1),
+			routeSetupDividerView.centerYAnchor.constraint(equalTo: routeConnectorStackView.centerYAnchor),
+			routeSetupDividerView.leadingAnchor.constraint(equalTo: originTextField.leadingAnchor),
+			routeSetupDividerView.trailingAnchor.constraint(equalTo: swapRouteButton.leadingAnchor, constant: -12),
 
-			destinationTextField.topAnchor.constraint(equalTo: actionDividerView.bottomAnchor, constant: 8),
+			destinationTextField.topAnchor.constraint(equalTo: routeSetupDividerView.bottomAnchor, constant: 8),
 			destinationTextField.leadingAnchor.constraint(equalTo: originTextField.leadingAnchor),
-			destinationTextField.trailingAnchor.constraint(equalTo: actionSwapButton.leadingAnchor, constant: -12),
+			destinationTextField.trailingAnchor.constraint(equalTo: swapRouteButton.leadingAnchor, constant: -12),
 			destinationTextField.heightAnchor.constraint(equalToConstant: 36),
-
-			actionHeaderTapButton.topAnchor.constraint(equalTo: actionHeaderView.topAnchor),
-			actionHeaderTapButton.leadingAnchor.constraint(equalTo: actionHeaderView.leadingAnchor),
-			actionHeaderTapButton.trailingAnchor.constraint(equalTo: routeOriginIconView.trailingAnchor, constant: 6),
-			actionHeaderTapButton.bottomAnchor.constraint(equalTo: actionHeaderView.bottomAnchor)
 		])
 
 		zoomControlView.addSubview(zoomInBtn)
@@ -493,10 +469,10 @@ class MapsViewController: UIViewController {
 	override func viewDidLayoutSubviews() {
 		super.viewDidLayoutSubviews()
 		locationBtn.addShadow(radius: 8)
-		actionView.addShadow(radius: 8)
-		actionView.layer.cornerRadius = 16
+		routeSetupContentView.addShadow(radius: 8)
+		routeSetupContentView.layer.cornerRadius = 16
 		zoomControlView.addShadow(radius: 8)
-		actionDividerView.cornerRadius()
+		routeSetupDividerView.cornerRadius()
 		statusFadeMask.frame = bkStatusView.bounds
 		statusFadeMask.colors = [
 			UIColor.black.cgColor,
@@ -505,9 +481,6 @@ class MapsViewController: UIViewController {
 		statusFadeMask.startPoint = CGPoint(x: 0.5, y: 0.0)
 		statusFadeMask.endPoint = CGPoint(x: 0.5, y: 1.0)
 		statusEffectView.layer.mask = statusFadeMask
-		if activeSearchField != .none {
-			updateExpandedLayout(animated: false)
-		}
 	}
 
 	private func reloadRecentPlaces() {
@@ -519,7 +492,7 @@ class MapsViewController: UIViewController {
 
 	
 	private func applySearchResults() {
-		let textField = activeSearchField == .origin ? originTextField : destinationTextField
+		let textField = editingRouteType == .origin ? originTextField : destinationTextField
 		let keyword = textField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
 		if keyword.isEmpty {
 			filteredPlaceModels = allPlaceModels
@@ -529,24 +502,19 @@ class MapsViewController: UIViewController {
 			}
 		}
 		suggestionTableView.reloadData()
-		updateExpandedLayout(animated: false)
 	}
 
-	private func updateExpandedLayout(animated: Bool) {
+	private func updateExpandedLayout(isExpend: Bool) {
 		let preferredHeight = expandedContentHeight()
 		let maximumHeight = maxExpandedHeight()
 		let resolvedHeight = min(preferredHeight, maximumHeight)
-		actionExpandedHeightConstraint?.constant = activeSearchField != .none ? resolvedHeight : 0
-		actionExpandedView.isHidden = activeSearchField == .none
-		suggestionTableView.isScrollEnabled = activeSearchField != .none && preferredHeight > maximumHeight
+		routeSetupExpandedHeightAnchor?.constant = isExpend ? resolvedHeight : 0
+		routeSetupExpandedView.isHidden = !isExpend
+		suggestionTableView.isScrollEnabled = isExpend && preferredHeight > maximumHeight
 		let animations = {
 			self.view.layoutIfNeeded()
 		}
-		if animated {
-			UIView.animate(withDuration: 0.22, delay: 0, options: .curveEaseInOut, animations: animations)
-		} else {
-			animations()
-		}
+		UIView.animate(withDuration: 0.22, delay: 0, options: .curveEaseInOut, animations: animations)
 	}
 
 	private func expandedContentHeight() -> CGFloat {
@@ -557,7 +525,7 @@ class MapsViewController: UIViewController {
 	private func maxExpandedHeight() -> CGFloat {
 		view.layoutIfNeeded()
 		let safeBottom = view.safeAreaLayoutGuide.layoutFrame.maxY
-		let expandedTop = actionExpandedView.convert(actionExpandedView.bounds, to: view).minY
+		let expandedTop = routeSetupExpandedView.convert(routeSetupExpandedView.bounds, to: view).minY
 		let availableHeight = safeBottom - expandedTop - 8
 		return max(0, availableHeight)
 	}
@@ -573,8 +541,7 @@ class MapsViewController: UIViewController {
 		let animationOptions = UIView.AnimationOptions(rawValue: animationCurveRaw << 16)
 		let keyboardFrameInView = view.convert(keyboardFrameValue.cgRectValue, from: nil)
 		let overlapHeight = max(0, view.bounds.maxY - keyboardFrameInView.minY - view.safeAreaInsets.bottom)
-		actionViewBottomConstraint?.constant = -(overlapHeight + 8)
-		updateExpandedLayout(animated: false)
+		routeSetupBottomAnchor?.constant = -(overlapHeight + 8)
 		UIView.animate(withDuration: animationDuration, delay: 0, options: [animationOptions, .beginFromCurrentState]) {
 			self.view.layoutIfNeeded()
 		}
@@ -585,13 +552,21 @@ class MapsViewController: UIViewController {
 		previousCoordinates.removeAll()
 		nextCoordinates.removeAll()
 		
-		if activeSearchField == .origin {
+		if editingRouteType == .origin {
+			if originLoModel == nil {
+				originLoModel = LocationViewModel()
+			}
+			originLoModel?.title = "Dropped pin"
 			var newOrigin = originLoModel
 			newOrigin?.isUserLocation = false
 			newOrigin?.coordinate = coordinate
 			originLoModel = newOrigin
 		}else {
-			activeSearchField = .destination
+			if destinationLoModel == nil {
+				destinationLoModel = LocationViewModel()
+			}
+			destinationLoModel?.title = "Dropped pin"
+			editingRouteType = .destination
 			var newDestination = destinationLoModel
 			newDestination?.coordinate = coordinate
 			newDestination?.isUserLocation = false
@@ -604,7 +579,7 @@ class MapsViewController: UIViewController {
 		// Find route
 		onRouteLocationsUpdate()
 		
-		updateExpandedLayout(animated: true)
+		updateExpandedLayout(isExpend: false)
 	}
 	
 	private func onUpdateOriginModel() {
@@ -612,24 +587,34 @@ class MapsViewController: UIViewController {
 			routeOriginIconView.image = UIImage(systemName: "circle.inset.filled")
 			routeOriginIconView.tintColor = .primary
 			originTextField.textColor = .primary
-			originTextField.text = "Your location"
 		}else {
 			routeOriginIconView.image = UIImage(named: "ic_marker")
 			routeOriginIconView.tintColor = .red
 			originTextField.textColor = .black
-			originTextField.text = originLoModel?.title
 		}
+		originTextField.text = originLoModel?.title
 	}
 	
 	private func onUpdateDestinationModel() {
-		if destinationLoModel != nil && destinationLoModel!.isUserLocation {
-			routeDestinationIconView.image = UIImage(systemName: "circle.inset.filled")
-			routeDestinationIconView.tintColor = .primary
-			destinationTextField.textColor = .primary
-			if destinationLoModel!.distance > 0 {
-				destinationTextField.text = "Your location ( \(Utils.toDistance(meters: destinationLoModel!.distance)) )"
+		if destinationLoModel != nil {
+			if destinationLoModel!.isUserLocation {
+				routeDestinationIconView.image = UIImage(systemName: "circle.inset.filled")
+				routeDestinationIconView.tintColor = .primary
+				destinationTextField.textColor = .primary
+				if destinationLoModel!.distance > 0 {
+					destinationTextField.text = "\(destinationLoModel?.title ?? "") ( \(Utils.toDistance(meters: destinationLoModel!.distance)) )"
+				}else {
+					destinationTextField.text = destinationLoModel?.title ?? ""
+				}
 			}else {
-				destinationTextField.text = "Your location "
+				routeDestinationIconView.image = UIImage(named: "ic_marker")
+				routeDestinationIconView.tintColor = .red
+				destinationTextField.textColor = .black
+				if destinationLoModel!.distance > 0 {
+					destinationTextField.text = "\(destinationLoModel?.title ?? "") ( \(Utils.toDistance(meters: destinationLoModel!.distance)) )"
+				}else {
+					destinationTextField.text = destinationLoModel?.title ?? ""
+				}
 			}
 		}else {
 			routeDestinationIconView.image = UIImage(named: "ic_marker")
@@ -642,7 +627,7 @@ class MapsViewController: UIViewController {
 	
 	private func addAnnotationAt(_ coordinate: CLLocationCoordinate2D) {
 		var pinnedID = "origin_pinned_annotation"
-		if activeSearchField == .destination {
+		if editingRouteType == .destination {
 			pinnedID = "destination_pinned_annotation"
 		}
 		mapView.removeAnnotation(id: pinnedID)
@@ -666,8 +651,10 @@ class MapsViewController: UIViewController {
 			let routeCoordinates = Const.routingProvider.coordinates(originCoor, destinationCoor!)
 			
 			let distance = Const.routingProvider.distance(routeCoordinates)
-			self.destinationLoModel?.distance = distance
 			DispatchQueue.main.async {
+				if self.destinationLoModel != nil {
+					self.destinationLoModel?.distance = distance
+				}
 				self.appendDestinationAddress(text: Utils.toDistance(meters: distance))
 			}
 			
@@ -691,17 +678,13 @@ class MapsViewController: UIViewController {
 		)
 	}
 
-	@objc private func onToggleActionExpanded() {
-		reloadRecentPlaces()
-		updateExpandedLayout(animated: true)
-	}
-
 	@objc private func onChooseOnMap() {
 		originTextField.resignFirstResponder()
 		destinationTextField.resignFirstResponder()
-		updateExpandedLayout(animated: true)
-		let message = activeSearchField == .origin ? "Long press on map to choose origin" : "Long press on map to choose destination"
+		updateExpandedLayout(isExpend: false)
+		let message = editingRouteType == .origin ? "Long press on map to choose origin" : "Long press on map to choose destination"
 		showToast(message: message)
+		
 	}
 
 	@objc private func onUseCurrentLocation() {
@@ -710,17 +693,35 @@ class MapsViewController: UIViewController {
 			return
 		}
 		mapView.setCenter(coordinate, zoomLevel: mapView.zoomLevel, animated: true)
-		switch activeSearchField {
+		switch editingRouteType {
 		case .origin:
 			originTextField.resignFirstResponder()
-			previousCoordinates.removeAll()
-			nextCoordinates.removeAll()
-			updateExpandedLayout(animated: true)
 		case .destination:
 			destinationTextField.resignFirstResponder()
-		case .none:
-			break
 		}
+		if editingRouteType == .origin {
+			if originLoModel == nil {
+				originLoModel = LocationViewModel()
+			}
+			var tmpOrigin = originLoModel
+			tmpOrigin?.coordinate = coordinate
+			tmpOrigin?.title = "Your location"
+			tmpOrigin?.isUserLocation = true
+			originLoModel = tmpOrigin
+		}else {
+			if destinationLoModel == nil {
+				destinationLoModel = LocationViewModel()
+			}
+			var tmpDestination = destinationLoModel
+			tmpDestination?.coordinate = coordinate
+			tmpDestination?.title = "Your location"
+			tmpDestination?.isUserLocation = true
+			destinationLoModel = tmpDestination
+		}
+		previousCoordinates.removeAll()
+		nextCoordinates.removeAll()
+		onRouteLocationsUpdate()
+		updateExpandedLayout(isExpend: false)
 	}
 	
 	
@@ -752,14 +753,13 @@ class MapsViewController: UIViewController {
 		nextCoordinates.removeAll()
 		onRouteLocationsUpdate()
 		
-		activeSearchField = .none
-		updateExpandedLayout(animated: true)
+		updateExpandedLayout(isExpend: false)
 	}
 
 	private func clearActionState() {
 		SVProgressHUD.dismiss()
 		
-		activeSearchField = .destination
+		editingRouteType = .destination
 		
 		originTextField.resignFirstResponder()
 		destinationTextField.resignFirstResponder()
@@ -775,9 +775,9 @@ class MapsViewController: UIViewController {
 		filteredPlaceModels.removeAll()
 		
 		originTextField.text = nil
-		destinationTextField.attributedText = nil
+		destinationTextField.text = nil
 		
-		updateExpandedLayout(animated: true)
+		updateExpandedLayout(isExpend: false)
 	}
 	
 	private func drawRouteOnMap() {
@@ -961,7 +961,7 @@ extension MapsViewController: UITableViewDelegate {
 		let coordinate = CLLocationCoordinate2D(latitude: place.lat, longitude: place.lng)
 		mapView.setCenter(coordinate, zoomLevel: mapView.zoomLevel, animated: true)
 		
-		if activeSearchField == .origin {
+		if editingRouteType == .origin {
 			var newOrigin = originLoModel != nil ? originLoModel : LocationViewModel()
 			newOrigin?.coordinate = coordinate
 			newOrigin?.title = place.name ?? ""
@@ -983,58 +983,52 @@ extension MapsViewController: UITableViewDelegate {
 		// Find route
 		onRouteLocationsUpdate()
 		
-		activeSearchField = .none
-		updateExpandedLayout(animated: true)
+		updateExpandedLayout(isExpend: false)
 	}
 }
 
 
 extension MapsViewController: UITextFieldDelegate {
 	
-	func textFieldDidBeginEditing(_ textField: UITextField) {
-		if textField === originTextField {
-			originTextField.text = ""
-			activeSearchField = .origin
-		}else {
-			destinationTextField.text = ""
-			activeSearchField = .destination
-		}
-	}
-	
 	func textFieldDidChangeSelection(_ textField: UITextField) {
 		guard textField === destinationTextField || textField === originTextField else { return }
-		activeSearchField = textField === originTextField ? .origin : .destination
+		editingRouteType = textField === originTextField ? .origin : .destination
 		applySearchResults()
 	}
 	
 	func textFieldShouldReturn(_ textField: UITextField) -> Bool {
 		textField.resignFirstResponder()
-		if activeSearchField == .destination {
+		if editingRouteType == .destination {
 			onUpdateDestinationModel()
 		}else {
 			onUpdateOriginModel()
 		}
-		activeSearchField = .none
-		updateExpandedLayout(animated: true)
+		updateExpandedLayout(isExpend: false)
 		return true
 	}
 
 	func textFieldDidEndEditing(_ textField: UITextField) {
 		guard textField === destinationTextField || textField === originTextField else { return }
-		if activeSearchField == .origin {
+		if editingRouteType == .origin {
 			onUpdateDestinationModel()
 		}else {
 			onUpdateOriginModel()
 		}
-		applySearchResults()
 		
 	}
 	
 	func textFieldShouldBeginEditing(_ textField: UITextField) -> Bool {
 		guard textField === destinationTextField || textField === originTextField else { return true }
-		activeSearchField = textField === originTextField ? .origin : .destination
-		updateExpandedLayout(animated: true)
+		editingRouteType = textField === originTextField ? .origin : .destination
+		if textField === originTextField {
+			originTextField.text = nil
+			editingRouteType = .origin
+		}else {
+			destinationTextField.text = nil
+			editingRouteType = .destination
+		}
 		applySearchResults()
+		updateExpandedLayout(isExpend: true)
 		return true
 	}
 }
