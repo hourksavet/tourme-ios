@@ -100,7 +100,7 @@ final class CompletedTourDetailsViewController: UIViewController {
 	}
 
 	@objc private func shareTourSummary() {
-		let tourMemoriesVC = TourMemoriesViewController()
+		let tourMemoriesVC = TourMemoriesViewController(tour: tour)
 		navigationController?.pushViewController(tourMemoriesVC, animated: true)
 	}
 

@@ -15,6 +15,10 @@
 		7505C07D2FD1577A004D0CAE /* MapExportTemplateViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7505C07B2FD1575A004D0CAE /* MapExportTemplateViewController.swift */; };
 		7505C07F2FD163E7004D0CAE /* MapCustomCheckListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7505C07E2FD163CA004D0CAE /* MapCustomCheckListViewController.swift */; };
 		7505C0802FD163E7004D0CAE /* MapCustomCheckListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7505C07E2FD163CA004D0CAE /* MapCustomCheckListViewController.swift */; };
+		7505C0852FD2605D004D0CAE /* ExportPlaceImageAnnotationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7505C0842FD2605A004D0CAE /* ExportPlaceImageAnnotationView.swift */; };
+		7505C0862FD2605D004D0CAE /* ExportPlaceImageAnnotationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7505C0842FD2605A004D0CAE /* ExportPlaceImageAnnotationView.swift */; };
+		7505C0882FD261AC004D0CAE /* ExportProfilePinAnnotationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7505C0872FD261A9004D0CAE /* ExportProfilePinAnnotationView.swift */; };
+		7505C0892FD261AC004D0CAE /* ExportProfilePinAnnotationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7505C0872FD261A9004D0CAE /* ExportProfilePinAnnotationView.swift */; };
 		751114B52E0D29D5001EBE5C /* LoadingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 751114A52E0D29D5001EBE5C /* LoadingViewController.swift */; };
 		751114B62E0D29D5001EBE5C /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 751114A72E0D29D5001EBE5C /* AppDelegate.swift */; };
 		751114B72E0D29D5001EBE5C /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 751114A82E0D29D5001EBE5C /* SceneDelegate.swift */; };
@@ -221,6 +225,8 @@
 		7505C0782FD15317004D0CAE /* map-style-road.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "map-style-road.json"; sourceTree = "<group>"; };
 		7505C07B2FD1575A004D0CAE /* MapExportTemplateViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapExportTemplateViewController.swift; sourceTree = "<group>"; };
 		7505C07E2FD163CA004D0CAE /* MapCustomCheckListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapCustomCheckListViewController.swift; sourceTree = "<group>"; };
+		7505C0842FD2605A004D0CAE /* ExportPlaceImageAnnotationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportPlaceImageAnnotationView.swift; sourceTree = "<group>"; };
+		7505C0872FD261A9004D0CAE /* ExportProfilePinAnnotationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportProfilePinAnnotationView.swift; sourceTree = "<group>"; };
 		751114872E0D0849001EBE5C /* TourMe-Pro.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "TourMe-Pro.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		751114A52E0D29D5001EBE5C /* LoadingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingViewController.swift; sourceTree = "<group>"; };
 		751114A72E0D29D5001EBE5C /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -696,6 +702,8 @@
 		75EE787A2FC5348900FC96A5 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				7505C0872FD261A9004D0CAE /* ExportProfilePinAnnotationView.swift */,
+				7505C0842FD2605A004D0CAE /* ExportPlaceImageAnnotationView.swift */,
 				75EE787B2FC534A600FC96A5 /* TourMemoryOptionCell.swift */,
 			);
 			path = Views;
@@ -927,6 +935,7 @@
 				754B32592E1CF5E800BCB9F9 /* DataProvider.swift in Sources */,
 				7541D0162E1B875000DF14CA /* BannerProfileViewCell.swift in Sources */,
 				751114CF2E0D3B5C001EBE5C /* AppColor.swift in Sources */,
+				7505C0862FD2605D004D0CAE /* ExportPlaceImageAnnotationView.swift in Sources */,
 				75EE787D2FC534A900FC96A5 /* TourMemoryOptionCell.swift in Sources */,
 				755318AB2E5EC4DC006E1FCC /* TileServer.swift in Sources */,
 				7541D0222E1B9C4C00DF14CA /* AddNoteViewCell.swift in Sources */,
@@ -934,6 +943,7 @@
 				755B62652E2F76E700581791 /* ProgressTourViewCell.swift in Sources */,
 				7541D0342E1BCB0800DF14CA /* MapsViewCell.swift in Sources */,
 				7541D0102E1B74F900DF14CA /* SavedPlacesViewController.swift in Sources */,
+				7505C0892FD261AC004D0CAE /* ExportProfilePinAnnotationView.swift in Sources */,
 				751114D62E0D3C71001EBE5C /* Extension.swift in Sources */,
 				7541D0142E1B751B00DF14CA /* ChooseVisitedPlacesViewController.swift in Sources */,
 				75F2FB032E210B0200D1F7C8 /* Utils.swift in Sources */,
@@ -1017,6 +1027,7 @@
 				754B32582E1CF5E800BCB9F9 /* DataProvider.swift in Sources */,
 				7541D0172E1B875000DF14CA /* BannerProfileViewCell.swift in Sources */,
 				751114D02E0D3B5C001EBE5C /* AppColor.swift in Sources */,
+				7505C0852FD2605D004D0CAE /* ExportPlaceImageAnnotationView.swift in Sources */,
 				75EE787C2FC534A900FC96A5 /* TourMemoryOptionCell.swift in Sources */,
 				755318AA2E5EC4DC006E1FCC /* TileServer.swift in Sources */,
 				7541D0232E1B9C4C00DF14CA /* AddNoteViewCell.swift in Sources */,
@@ -1024,6 +1035,7 @@
 				755B62642E2F76E700581791 /* ProgressTourViewCell.swift in Sources */,
 				7541D0352E1BCB0800DF14CA /* MapsViewCell.swift in Sources */,
 				7541D0112E1B74F900DF14CA /* SavedPlacesViewController.swift in Sources */,
+				7505C0882FD261AC004D0CAE /* ExportProfilePinAnnotationView.swift in Sources */,
 				751114D52E0D3C71001EBE5C /* Extension.swift in Sources */,
 				7541D0132E1B751B00DF14CA /* ChooseVisitedPlacesViewController.swift in Sources */,
 				75F2FB022E210B0200D1F7C8 /* Utils.swift in Sources */,

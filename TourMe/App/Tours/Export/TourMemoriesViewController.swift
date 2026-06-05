@@ -32,6 +32,17 @@ final class TourMemoriesViewController: UIViewController {
 		return tableView
 	}()
 
+	private var tour: Tour!
+	
+	init(tour: Tour) {
+		super.init(nibName: nil, bundle: nil)
+		self.tour = tour
+	}
+	
+	required init?(coder: NSCoder) {
+		fatalError("init(coder:) has not been implemented")
+	}
+	
 	override func loadView() {
 		super.loadView()
 		view.addSubview(tableView)
@@ -88,7 +99,7 @@ extension TourMemoriesViewController: UITableViewDelegate {
 
 	func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
 		tableView.deselectRow(at: indexPath, animated: true)
-		let vc = MapExportTemplateViewController()
+		let vc = MapExportTemplateViewController(tour: tour)
 		navigationController?.pushViewController(vc, animated: true)
 	}
 	

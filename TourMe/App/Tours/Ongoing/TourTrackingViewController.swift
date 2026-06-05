@@ -345,8 +345,7 @@ class TourTrackingViewController: UIViewController {
 	private func addPlacesAnnotationOnMap() {
 		annotationIDs.removeAll()
 		for visitPl in visitPlaces.reversed() {
-			// Create a point annotation
-			let place = visitPl.place!
+			guard let place = visitPl.place else { continue }
 			let placeAnnotation = PlaceAnnotation()
 			placeAnnotation.id = place.id?.uuidString ?? ""
 			annotationIDs.append(placeAnnotation.id)
@@ -355,47 +354,66 @@ class TourTrackingViewController: UIViewController {
 			mapView.addAnnotation(placeAnnotation)
 		}
 		if tour.inDeparture {
-			if let index = visitPlaces.firstIndex(where: { $0.status == .onging || $0.status == .arrived }) {
-				routeTo(place: visitPlaces[index].place!, index: index)
+			if let index = visitPlaces.firstIndex(where: { $0.status == .onging || $0.status == .arrived }),
+			   let place = visitPlaces[index].place {
 				trackingIndexPath = IndexPath(row: index, section: 0)
+				routeTo(place: place, index: index)
 				placesCollectionView.scrollToItem(at: trackingIndexPath!, at: .centeredHorizontally, animated: true)
 			}
 		}else {
 			routingBetweenPlaces()
 		}
 	}
+
+	private func routeOriginCoordinate() -> CLLocationCoordinate2D? {
+		if let coordinate = currentLocation?.coordinate {
+			return coordinate
+		}
+		if let coordinate = locationManager?.location?.coordinate {
+			return coordinate
+		}
+		if tour.startLat != 0 || tour.startLng != 0 {
+			return CLLocationCoordinate2D(latitude: tour.startLat, longitude: tour.startLng)
+		}
+		if vehicleAnnotation != nil {
+			return vehicleAnnotation.coordinate
+		}
+		return nil
+	}
 	
 	private func routingBetweenPlaces() {
-		var routeCoors: [CLLocationCoordinate2D] = []
-		if let userCoordinates = currentLocation?.coordinate {
-			routeCoors.insert(userCoordinates, at: 0)
-		}else {
-			let userCoor = locationManager.location!.coordinate
-			routeCoors.insert(userCoor, at: 0)
-		}
-		for visitPl in visitPlaces {
-			let place = visitPl.place!
-			routeCoors.append(CLLocationCoordinate2D(latitude: place.lat, longitude: place.lng))
-		}
+		guard let originCoordinate = routeOriginCoordinate() else { return }
+		let places = visitPlaces.compactMap(\ .place)
+		guard !places.isEmpty else { return }
+		var routeCoors: [CLLocationCoordinate2D] = [originCoordinate]
+		routeCoors.append(contentsOf: places.map { CLLocationCoordinate2D(latitude: $0.lat, longitude: $0.lng) })
 		DispatchQueue.global(qos: .default).async {
+			var resolvedRouteIDs: [String] = []
+			var segmentResults: [(id: String, coordinates: [CLLocationCoordinate2D])] = []
+			var metricUpdates: [(index: Int, distance: Double, duration: Double)] = []
 			var fromCoor: CLLocationCoordinate2D = routeCoors.first!
-			var toCoor: CLLocationCoordinate2D!
-			self.routeIDs.removeAll()
 			for i in 1..<routeCoors.count {
-				toCoor = routeCoors[i]
+				let toCoor = routeCoors[i]
 				let routeCoordinates = Const.routingProvider.coordinates(fromCoor, toCoor)
 				if self.visitPlaces[i - 1].distance == 0 {
 					let distance = Const.routingProvider.distance(routeCoordinates)
-					self.visitPlaces[i - 1].distance = Double(distance)
-				}
-				if self.visitPlaces[i - 1].duration == 0 {
 					let duration = Const.routingProvider.travelDuration(fromCoor, toCoor)
-					self.visitPlaces[i - 1].duration = Double(duration)
+					metricUpdates.append((index: i - 1, distance: Double(distance), duration: Double(duration)))
 				}
-				let id = self.visitPlaces[i - 1].place!.id?.uuidString ?? ""
-				self.routeIDs.append(id)
-				self.drawRouteOnMap(routeCoordinates, uuid: id)
-				fromCoor = toCoor!
+				let id = self.visitPlaces[i - 1].place?.id?.uuidString ?? ""
+				resolvedRouteIDs.append(id)
+				segmentResults.append((id: id, coordinates: routeCoordinates))
+				fromCoor = toCoor
+			}
+			DispatchQueue.main.async {
+				self.routeIDs = resolvedRouteIDs
+				for update in metricUpdates {
+					self.visitPlaces[update.index].distance = update.distance
+					self.visitPlaces[update.index].duration = update.duration
+				}
+				for segment in segmentResults {
+					self.drawRouteOnMap(segment.coordinates, uuid: segment.id)
+				}
 			}
 		}
 	}
@@ -413,32 +431,27 @@ class TourTrackingViewController: UIViewController {
 	}
 	
 	private func routeTo(place: Place, index: Int) {
-		var currentCoor: CLLocationCoordinate2D
-		if let userCoordinates = currentLocation?.coordinate {
-			currentCoor = userCoordinates
-		}else {
-			let userCoor = locationManager.location!.coordinate
-			currentCoor = userCoor
-		}
+		guard let currentCoor = routeOriginCoordinate() else { return }
 		let placeCoor = CLLocationCoordinate2D(latitude: place.lat, longitude: place.lng)
 		DispatchQueue.global(qos: .default).async {
 			let routeCoordinates = Const.routingProvider.coordinates(currentCoor, placeCoor)
 			let distance = Const.routingProvider.distance(routeCoordinates)
-			self.nextCoordinates = routeCoordinates
 			DispatchQueue.main.async {
+				self.nextCoordinates = routeCoordinates
 				self.visitPlaces[index].distance = Double(distance)
 				let indexPath = IndexPath(item: index, section: 0)
 				self.placesCollectionView.reloadItems(at: [indexPath])
+				let id = place.id?.uuidString ?? ""
+				self.routeIDs.append(id)
+				self.drawGoingRoute()
 			}
-			let id = place.id?.uuidString ?? ""
-			self.routeIDs.append(id)
-			self.drawGoingRoute()
 		}
 	}
 	
 	private func drawGoingRoute() {
 		DispatchQueue.main.async {
 			if self.nextCoordinates.count > 2 {
+				guard let trackingIndexPath = self.trackingIndexPath else { return }
 				let distance = Const.routingProvider.distance(self.nextCoordinates)
 				self.mapView.addPolyline(
 					coordinates: self.nextCoordinates,
@@ -447,8 +460,8 @@ class TourTrackingViewController: UIViewController {
 					color: .blue,
 					width: 10
 				)
-				self.visitPlaces[self.trackingIndexPath!.row].distance = Double(distance)
-				self.placesCollectionView.reloadItems(at: [self.trackingIndexPath!])
+				self.visitPlaces[trackingIndexPath.row].distance = Double(distance)
+				self.placesCollectionView.reloadItems(at: [trackingIndexPath])
 			}
 			
 			if self.previousCoordinates.count > 2 {
@@ -629,8 +642,8 @@ class TourTrackingViewController: UIViewController {
 				} catch {}
 				self.placesCollectionView.reloadItems(at: [indexPath])
 				self.clearRoutes()
-				self.routeTo(place: self.visitPlaces[indexPath.row].place!, index: indexPath.row)
 				self.trackingIndexPath = indexPath
+				self.routeTo(place: self.visitPlaces[indexPath.row].place!, index: indexPath.row)
 			}
 			let delete = PlaceMenuAction(
 				title: "Remove",
@@ -698,8 +711,8 @@ class TourTrackingViewController: UIViewController {
 			) {
 				self.visitPlaces[indexPath.row].arrived_date = nil
 				self.visitPlaces[indexPath.row].status_code = VisitPlaceStatus.onging.rawValue
-				self.routeTo(place: self.visitPlaces[indexPath.row].place!, index: indexPath.row)
 				self.trackingIndexPath = indexPath
+				self.routeTo(place: self.visitPlaces[indexPath.row].place!, index: indexPath.row)
 				do {
 					try Const.dataManager.context.save()
 				}catch {}

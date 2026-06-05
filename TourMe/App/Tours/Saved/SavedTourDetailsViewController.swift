@@ -15,6 +15,7 @@ class SavedTourDetailsViewController: UIViewController {
 	private var enableClose: Bool = false
 	private var tour: Tour!
 	private var places: [Place] = []
+	private var locationManager: CLLocationManager!
 	
 	private lazy var tableView: UITableView = {
 		let tableView = UITableView(frame: .zero, style: .insetGrouped)
@@ -91,6 +92,10 @@ class SavedTourDetailsViewController: UIViewController {
 		tableView.tableFooterView = UIView(frame: CGRect(x: 0, y: 0, width: 200, height: 55))
 		tableView.dataSource = self
 		tableView.delegate = self
+		
+		locationManager = CLLocationManager()
+		locationManager.requestWhenInUseAuthorization()
+		locationManager.startUpdatingLocation()
     }
 	
 	deinit {
@@ -98,11 +103,18 @@ class SavedTourDetailsViewController: UIViewController {
 	}
 	
 	@objc private func startTour() throws {
-		tour.startDate = Date()
-		let context = Const.dataManager.context
-		try context.save()
-		NotificationCenter.default.post(name: Utils.observerName(.statedTour), object: nil, userInfo: [String.tour: tour!])
-		dismiss(animated: false)
+		if let location = locationManager.location {
+			locationManager.stopUpdatingLocation()
+			tour.startDate = Date()
+			tour.startLat = location.coordinate.latitude
+			tour.startLng = location.coordinate.longitude
+			let context = Const.dataManager.context
+			try context.save()
+			NotificationCenter.default.post(name: Utils.observerName(.statedTour), object: nil, userInfo: [String.tour: tour!])
+			dismiss(animated: false)
+		}else {
+			Alert.showDefault(on: self, message: "can't_get_location", button: "retry".localized())
+		}
 	}
 	
 	@objc private func closeScreen() {
