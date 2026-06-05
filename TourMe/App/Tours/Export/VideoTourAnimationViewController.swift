@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import ReplayKit
 import MapLibre
 import SVProgressHUD
 
@@ -22,12 +23,21 @@ class VideoTourAnimationViewController: UIViewController {
 	private var directionCoordinate: CLLocationCoordinate2D?
 	private var carAnnotation: PlaceAnnotation?
 	private var carAnimationTimer: Timer?
+	private var exportStopTimer: Timer?
 	private var currentRouteIndex: Int = 0
 	private var currentDestinationIndex: Int = 0
 	private let followCameraZoomLevel: Double = 15
 	private let followCameraPitch: CGFloat = 45
 	private let carAnimationInterval: TimeInterval = 0.06
-	private let maxPreviewDuration: TimeInterval = 120
+	private let maxPreviewDuration: TimeInterval = 30
+	private let maxVideoExportDuration: TimeInterval = 30
+	private var isRecordingExport = false
+	private var isPreviewingAnimation = false
+	private var wasNavigationBarHiddenBeforeRecording = false
+	private var wasMapLogoHiddenBeforeRecording = false
+	private var wasAttributionButtonHiddenBeforeRecording = false
+	private var wasCompassHiddenBeforeRecording = false
+	private var wasMapIDHiddenBeforeRecording = true
 	
 	private lazy var mapView: ToureMeMapView = {
 		let mapV = ToureMeMapView(style: "map-style-road")
@@ -55,6 +65,34 @@ class VideoTourAnimationViewController: UIViewController {
 	private var renderVersion: Int = 0
 	private var account: Account?
 	private var mapViewConstraints: [NSLayoutConstraint] = []
+	private lazy var previewBarButtonItem: UIBarButtonItem = {
+		let button = UIBarButtonItem(
+			title: "Preview",
+			style: .plain,
+			target: self,
+			action: #selector(onPreviewAnimation)
+		)
+		button.isEnabled = false
+		return button
+	}()
+	private lazy var exportBarButtonItem: UIBarButtonItem = {
+		let button = UIBarButtonItem(
+			image: UIImage(systemName: "record.circle"),
+			style: .plain,
+			target: self,
+			action: #selector(exportAnimationVideo)
+		)
+		button.isEnabled = false
+		return button
+	}()
+	private lazy var styleBarButtonItem: UIBarButtonItem = {
+		UIBarButtonItem(
+			image: UIImage(systemName: "slider.horizontal.3"),
+			style: .plain,
+			target: self,
+			action: #selector(openMapChecklist)
+		)
+	}()
 	
 	init(tour: Tour) {
 		super.init(nibName: nil, bundle: nil)
@@ -64,6 +102,10 @@ class VideoTourAnimationViewController: UIViewController {
 	
 	required init?(coder: NSCoder) {
 		fatalError("init(coder:) has not been implemented")
+	}
+
+	override var prefersStatusBarHidden: Bool {
+		isRecordingExport || isPreviewingAnimation
 	}
 	
 	override func loadView() {
@@ -88,23 +130,9 @@ class VideoTourAnimationViewController: UIViewController {
 	
 	override func viewDidLoad() {
 		super.viewDidLoad()
-		title = "Paper Map"
 		view.backgroundColor = .screenBackground
 		account = Const.dataManager.fetchData(Account.self).first
-		let previewButton = UIBarButtonItem(
-			title: "Preview",
-			style: .plain,
-			target: self,
-			action: #selector(onPreviewAnimation)
-		)
-		previewButton.isEnabled = false
-		let styleButton = UIBarButtonItem(
-			image: UIImage(systemName: "slider.horizontal.3"),
-			style: .plain,
-			target: self,
-			action: #selector(openMapChecklist)
-		)
-		navigationItem.rightBarButtonItems = [styleButton, previewButton]
+		navigationItem.rightBarButtonItems = [exportBarButtonItem, styleBarButtonItem, previewBarButtonItem]
 	}
 
 	@objc private func openMapChecklist() {
@@ -119,7 +147,15 @@ class VideoTourAnimationViewController: UIViewController {
 	}
 
 	@objc private func onPreviewAnimation() {
-		startCarAnimationIfNeeded()
+		startCarAnimationIfNeeded(hideControlsDuringPlayback: true)
+	}
+
+	@objc private func exportAnimationVideo() {
+		guard routeCoordinates.count > 1 else {
+			showToast(message: "No route to export")
+			return
+		}
+		startScreenRecordingExport()
 	}
 
 	private func renderMap() {
@@ -188,7 +224,9 @@ class VideoTourAnimationViewController: UIViewController {
 				}
 				self.renderedRouteIDs = segments.map { ($0.1, $0.2) }
 				self.boundCoordinates(visibleCoordinates)
-				self.navigationItem.rightBarButtonItems?.first(where: { $0.title == "Preview" })?.isEnabled = self.routeCoordinates.count > 1
+				let hasRoute = self.routeCoordinates.count > 1
+				self.previewBarButtonItem.isEnabled = hasRoute
+				self.exportBarButtonItem.isEnabled = hasRoute
 				SVProgressHUD.dismiss()
 			}
 		}
@@ -202,7 +240,8 @@ class VideoTourAnimationViewController: UIViewController {
 
 	private func clearMapContent() {
 		stopCarAnimation()
-		navigationItem.rightBarButtonItems?.first(where: { $0.title == "Preview" })?.isEnabled = false
+		previewBarButtonItem.isEnabled = false
+		exportBarButtonItem.isEnabled = false
 		if let annotations = mapView.annotations {
 			mapView.removeAnnotations(annotations)
 		}
@@ -215,15 +254,29 @@ class VideoTourAnimationViewController: UIViewController {
 		carAnnotation = nil
 	}
 
-	private func startCarAnimationIfNeeded() {
-		stopCarAnimation()
-		animatedRouteCoordinates = cappedAnimationRouteCoordinates(from: routeCoordinates)
+	private func startCarAnimationIfNeeded(hideControlsDuringPlayback: Bool = false) {
+		stopCarAnimation(shouldFinishRecording: false)
+		if hideControlsDuringPlayback {
+			isPreviewingAnimation = true
+			setRecordingControlsHidden(true)
+		}
+		animatedRouteCoordinates = cappedAnimationRouteCoordinates(
+			from: routeCoordinates,
+			maxDuration: maxPreviewDuration,
+			frameInterval: carAnimationInterval
+		)
 		animatedDestinationIndices = mappedAnimatedDestinationIndices(
 			for: routeDestinationIndices,
 			sourceCount: routeCoordinates.count,
 			animatedCount: animatedRouteCoordinates.count
 		)
-		guard animatedRouteCoordinates.count > 1 else { return }
+		guard animatedRouteCoordinates.count > 1 else {
+			if hideControlsDuringPlayback {
+				isPreviewingAnimation = false
+				setRecordingControlsHidden(false)
+			}
+			return
+		}
 
 		currentRouteIndex = 0
 		currentDestinationIndex = 0
@@ -237,7 +290,6 @@ class VideoTourAnimationViewController: UIViewController {
 		carAnnotation = annotation
 		mapView.addAnnotation(annotation)
 		refreshCarAnnotationView()
-		boundCameraForAnimationStart()
 
 		carAnimationTimer = Timer.scheduledTimer(withTimeInterval: carAnimationInterval, repeats: true) { [weak self] _ in
 			self?.moveCarToNextCoordinate()
@@ -274,11 +326,104 @@ class VideoTourAnimationViewController: UIViewController {
 		}
 	}
 
-	private func stopCarAnimation() {
+	private func stopCarAnimation(shouldFinishRecording: Bool = true) {
 		carAnimationTimer?.invalidate()
 		carAnimationTimer = nil
+		exportStopTimer?.invalidate()
+		exportStopTimer = nil
 		currentRouteIndex = 0
 		currentDestinationIndex = 0
+		if isPreviewingAnimation {
+			isPreviewingAnimation = false
+			setRecordingControlsHidden(false)
+		}
+		if shouldFinishRecording, isRecordingExport {
+			finishScreenRecordingExport()
+		}
+	}
+
+	private func startScreenRecordingExport() {
+		let recorder = RPScreenRecorder.shared()
+		guard recorder.isAvailable else {
+			showToast(message: "Video export failed")
+			return
+		}
+
+		stopCarAnimation(shouldFinishRecording: false)
+		setRecordingControlsHidden(true)
+		previewBarButtonItem.isEnabled = false
+		exportBarButtonItem.isEnabled = false
+		isRecordingExport = true
+
+		recorder.startRecording { [weak self] error in
+			DispatchQueue.main.async {
+				guard let self else { return }
+				if error != nil {
+					self.isRecordingExport = false
+					self.setRecordingControlsHidden(false)
+					SVProgressHUD.dismiss()
+					self.setAnimationButtonsEnabled()
+					self.showToast(message: "Video export failed")
+					return
+				}
+				self.startCarAnimationIfNeeded()
+				self.exportStopTimer = Timer.scheduledTimer(withTimeInterval: self.maxVideoExportDuration, repeats: false) { [weak self] _ in
+					self?.finishScreenRecordingExport()
+				}
+			}
+		}
+	}
+
+	private func finishScreenRecordingExport() {
+		guard isRecordingExport else { return }
+		isRecordingExport = false
+		exportStopTimer?.invalidate()
+		exportStopTimer = nil
+
+		RPScreenRecorder.shared().stopRecording { [weak self] previewController, error in
+			DispatchQueue.main.async {
+				guard let self else { return }
+				self.setRecordingControlsHidden(false)
+				SVProgressHUD.dismiss()
+				self.setAnimationButtonsEnabled()
+				if let previewController {
+					previewController.previewControllerDelegate = self
+					self.present(previewController, animated: true)
+				} else {
+					self.showToast(message: "Video export failed")
+				}
+			}
+		}
+	}
+
+	private func setRecordingControlsHidden(_ isHidden: Bool) {
+		setNeedsStatusBarAppearanceUpdate()
+
+		if isHidden {
+			wasNavigationBarHiddenBeforeRecording = navigationController?.isNavigationBarHidden ?? false
+			wasMapLogoHiddenBeforeRecording = mapView.logoView.isHidden
+			wasAttributionButtonHiddenBeforeRecording = mapView.attributionButton.isHidden
+			wasCompassHiddenBeforeRecording = mapView.compassView.isHidden
+			wasMapIDHiddenBeforeRecording = mapIDView.isHidden
+			navigationController?.setNavigationBarHidden(true, animated: false)
+			mapView.logoView.isHidden = true
+			mapView.attributionButton.isHidden = true
+			mapView.compassView.isHidden = true
+			mapIDView.isHidden = true
+			return
+		}
+
+		navigationController?.setNavigationBarHidden(wasNavigationBarHiddenBeforeRecording, animated: false)
+		mapView.logoView.isHidden = wasMapLogoHiddenBeforeRecording
+		mapView.attributionButton.isHidden = wasAttributionButtonHiddenBeforeRecording
+		mapView.compassView.isHidden = wasCompassHiddenBeforeRecording
+		mapIDView.isHidden = wasMapIDHiddenBeforeRecording
+	}
+
+	private func setAnimationButtonsEnabled() {
+		let hasRoute = routeCoordinates.count > 1
+		previewBarButtonItem.isEnabled = hasRoute
+		exportBarButtonItem.isEnabled = hasRoute
 	}
 
 	private func updateCurrentDestinationIndex() {
@@ -289,9 +434,9 @@ class VideoTourAnimationViewController: UIViewController {
 		}
 	}
 
-	private func cappedAnimationRouteCoordinates(from coordinates: [CLLocationCoordinate2D]) -> [CLLocationCoordinate2D] {
+	private func cappedAnimationRouteCoordinates(from coordinates: [CLLocationCoordinate2D], maxDuration: TimeInterval, frameInterval: TimeInterval) -> [CLLocationCoordinate2D] {
 		let smoothedCoordinates = smoothRouteCoordinates(from: coordinates)
-		let frameLimit = max(2, Int(maxPreviewDuration / carAnimationInterval))
+		let frameLimit = max(2, Int(maxDuration / frameInterval))
 		guard smoothedCoordinates.count > frameLimit else { return smoothedCoordinates }
 
 		var cappedCoordinates: [CLLocationCoordinate2D] = []
@@ -458,9 +603,12 @@ class VideoTourAnimationViewController: UIViewController {
 		return CGFloat(atan2(longitudeDelta, latitudeDelta))
 	}
 
-	private func carHeadingDegrees() -> CLLocationDirection {
-		let degrees = carRotationAngle() * 180 / .pi
-		return CLLocationDirection((degrees >= 0 ? degrees : degrees + 360))
+}
+
+extension VideoTourAnimationViewController: RPPreviewViewControllerDelegate {
+
+	func previewControllerDidFinish(_ previewController: RPPreviewViewController) {
+		previewController.dismiss(animated: true)
 	}
 }
 
