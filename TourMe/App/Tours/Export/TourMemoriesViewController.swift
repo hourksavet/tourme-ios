@@ -99,8 +99,16 @@ extension TourMemoriesViewController: UITableViewDelegate {
 
 	func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
 		tableView.deselectRow(at: indexPath, animated: true)
-		let vc = MapExportTemplateViewController(tour: tour)
-		navigationController?.pushViewController(vc, animated: true)
+		switch indexPath.row {
+		case 0:
+			let vc = MapExportTemplateViewController(tour: tour)
+			navigationController?.pushViewController(vc, animated: true)
+		case 1:
+			let vc = VideoTourAnimationViewController(tour: tour)
+			navigationController?.pushViewController(vc, animated: true)
+		default:
+			break
+		}
 	}
 	
 	func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {

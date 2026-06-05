@@ -21,6 +21,8 @@
 		7505C0892FD261AC004D0CAE /* ExportProfilePinAnnotationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7505C0872FD261A9004D0CAE /* ExportProfilePinAnnotationView.swift */; };
 		7505C08B2FD2AD53004D0CAE /* MapIDView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7505C08A2FD2AD40004D0CAE /* MapIDView.swift */; };
 		7505C08C2FD2AD53004D0CAE /* MapIDView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7505C08A2FD2AD40004D0CAE /* MapIDView.swift */; };
+		7505C08E2FD2BE49004D0CAE /* VideoTourAnimationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7505C08D2FD2BE26004D0CAE /* VideoTourAnimationViewController.swift */; };
+		7505C08F2FD2BE49004D0CAE /* VideoTourAnimationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7505C08D2FD2BE26004D0CAE /* VideoTourAnimationViewController.swift */; };
 		751114B52E0D29D5001EBE5C /* LoadingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 751114A52E0D29D5001EBE5C /* LoadingViewController.swift */; };
 		751114B62E0D29D5001EBE5C /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 751114A72E0D29D5001EBE5C /* AppDelegate.swift */; };
 		751114B72E0D29D5001EBE5C /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 751114A82E0D29D5001EBE5C /* SceneDelegate.swift */; };
@@ -230,6 +232,7 @@
 		7505C0842FD2605A004D0CAE /* ExportPlaceImageAnnotationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportPlaceImageAnnotationView.swift; sourceTree = "<group>"; };
 		7505C0872FD261A9004D0CAE /* ExportProfilePinAnnotationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportProfilePinAnnotationView.swift; sourceTree = "<group>"; };
 		7505C08A2FD2AD40004D0CAE /* MapIDView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapIDView.swift; sourceTree = "<group>"; };
+		7505C08D2FD2BE26004D0CAE /* VideoTourAnimationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoTourAnimationViewController.swift; sourceTree = "<group>"; };
 		751114872E0D0849001EBE5C /* TourMe-Pro.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "TourMe-Pro.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		751114A52E0D29D5001EBE5C /* LoadingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingViewController.swift; sourceTree = "<group>"; };
 		751114A72E0D29D5001EBE5C /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -698,6 +701,7 @@
 				75EE787A2FC5348900FC96A5 /* Views */,
 				75EE78772FC530C500FC96A5 /* TourMemoriesViewController.swift */,
 				7505C07B2FD1575A004D0CAE /* MapExportTemplateViewController.swift */,
+				7505C08D2FD2BE26004D0CAE /* VideoTourAnimationViewController.swift */,
 				7505C07E2FD163CA004D0CAE /* MapCustomCheckListViewController.swift */,
 			);
 			path = Export;
@@ -961,6 +965,7 @@
 				754B325D2E1D00C100BCB9F9 /* Const.swift in Sources */,
 				75571C8A2EC57F2400446FA0 /* PlaceTrackingViewCell.swift in Sources */,
 				754CDBFA2E1E497C0034252C /* PickLocationViewController.swift in Sources */,
+				7505C08E2FD2BE49004D0CAE /* VideoTourAnimationViewController.swift in Sources */,
 				7541D0262E1BB41200DF14CA /* PlaceholderTextView.swift in Sources */,
 				75A354EE2E716936006B5EB7 /* RoutingProvider.swift in Sources */,
 				75EE786B2FC43C9800FC96A5 /* CompletedTourActionCell.swift in Sources */,
@@ -1054,6 +1059,7 @@
 				754B325C2E1D00C100BCB9F9 /* Const.swift in Sources */,
 				75571C892EC57F2400446FA0 /* PlaceTrackingViewCell.swift in Sources */,
 				754CDBFB2E1E497C0034252C /* PickLocationViewController.swift in Sources */,
+				7505C08F2FD2BE49004D0CAE /* VideoTourAnimationViewController.swift in Sources */,
 				7541D0252E1BB41200DF14CA /* PlaceholderTextView.swift in Sources */,
 				75A354ED2E716936006B5EB7 /* RoutingProvider.swift in Sources */,
 				75EE786C2FC43C9800FC96A5 /* CompletedTourActionCell.swift in Sources */,

@@ -58,6 +58,10 @@ final class ExportProfilePinAnnotationView: MLNAnnotationView {
 		fatalError("init(coder:) has not been implemented")
 	}
 
+	func updateCarRotation(_ rotation: CGFloat) {
+		carImgV.transform = CGAffineTransform(rotationAngle: rotation)
+	}
+
 	override func layoutSubviews() {
 		super.layoutSubviews()
 		profileImageView.layer.cornerRadius = profileImageView.bounds.width / 2
