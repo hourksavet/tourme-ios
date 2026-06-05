@@ -191,6 +191,8 @@ class MapExportTemplateViewController: UIViewController {
 			mapView.removePolyline(sourceID: routeID.0, layerID: routeID.1)
 		}
 		renderedRouteIDs.removeAll()
+		centerCoordinate = nil
+		directionCoordinate = nil
 	}
 
 	private func boundCoordinates(_ coordinates: [CLLocationCoordinate2D]) {
@@ -218,7 +220,7 @@ class MapExportTemplateViewController: UIViewController {
 
 	private func focusMapForExport(completion: @escaping (@escaping () -> Void) -> Void) {
 		let coordinates = exportCoordinates()
-		guard let firstCoordinate = coordinates.first else {
+		guard let bounds = exportBounds(for: coordinates) else {
 			completion({})
 			return
 		}
@@ -233,13 +235,6 @@ class MapExportTemplateViewController: UIViewController {
 		mapView.frame = exportFrame
 		mapView.center = originalCenter
 		mapView.layoutIfNeeded()
-		var bounds = MLNCoordinateBounds(sw: firstCoordinate, ne: firstCoordinate)
-		for coordinate in coordinates.dropFirst() {
-			bounds.sw.latitude = min(bounds.sw.latitude, coordinate.latitude)
-			bounds.sw.longitude = min(bounds.sw.longitude, coordinate.longitude)
-			bounds.ne.latitude = max(bounds.ne.latitude, coordinate.latitude)
-			bounds.ne.longitude = max(bounds.ne.longitude, coordinate.longitude)
-		}
 		let exportPadding = exportEdgeInsets(for: exportFrame.size)
 		mapView.setVisibleCoordinateBounds(bounds, edgePadding: exportPadding, animated: false) { [weak self] in
 			guard let self else { return }
@@ -294,8 +289,14 @@ class MapExportTemplateViewController: UIViewController {
 	}
 
 	private func exportPageSize() -> CGSize {
-		// Poster-style 3:2 landscape canvas matching the provided reference layout.
-		return CGSize(width: 1800, height: 1200)
+		switch exportDensityLevel() {
+		case 2:
+			return CGSize(width: 3000, height: 2000)
+		case 1:
+			return CGSize(width: 2400, height: 1600)
+		default:
+			return CGSize(width: 1800, height: 1200)
+		}
 	}
 
 	private func exportContentRect(in pageBounds: CGRect) -> CGRect {
@@ -321,6 +322,90 @@ class MapExportTemplateViewController: UIViewController {
 		let horizontalInset = max(size.width * 0.06, 56)
 		let verticalInset = max(size.height * 0.08, 72)
 		return UIEdgeInsets(top: verticalInset, left: horizontalInset, bottom: verticalInset, right: horizontalInset)
+	}
+
+	private func exportBounds(for coordinates: [CLLocationCoordinate2D]) -> MLNCoordinateBounds? {
+		guard var bounds = cambodiaBounds() else { return nil }
+		for coordinate in coordinates {
+			bounds.sw.latitude = min(bounds.sw.latitude, coordinate.latitude)
+			bounds.sw.longitude = min(bounds.sw.longitude, coordinate.longitude)
+			bounds.ne.latitude = max(bounds.ne.latitude, coordinate.latitude)
+			bounds.ne.longitude = max(bounds.ne.longitude, coordinate.longitude)
+		}
+		return bounds
+	}
+
+	private func cambodiaBounds() -> MLNCoordinateBounds? {
+		let southwest = CLLocationCoordinate2D(latitude: 10.34, longitude: 102.33)
+		let northeast = CLLocationCoordinate2D(latitude: 14.71, longitude: 107.63)
+		return MLNCoordinateBounds(sw: southwest, ne: northeast)
+	}
+
+	private func exportDensityLevel() -> Int {
+		let count = visitPlaces.count
+		if count >= 12 || coordinateSpreadScore() < 1.2 {
+			return 2
+		}
+		if count >= 7 || coordinateSpreadScore() < 2.4 {
+			return 1
+		}
+		return 0
+	}
+
+	private func coordinateSpreadScore() -> CLLocationDegrees {
+		let coordinates = exportCoordinates()
+		guard let firstCoordinate = coordinates.first else { return .greatestFiniteMagnitude }
+		var minLatitude = firstCoordinate.latitude
+		var maxLatitude = firstCoordinate.latitude
+		var minLongitude = firstCoordinate.longitude
+		var maxLongitude = firstCoordinate.longitude
+		for coordinate in coordinates.dropFirst() {
+			minLatitude = min(minLatitude, coordinate.latitude)
+			maxLatitude = max(maxLatitude, coordinate.latitude)
+			minLongitude = min(minLongitude, coordinate.longitude)
+			maxLongitude = max(maxLongitude, coordinate.longitude)
+		}
+		return max(maxLatitude - minLatitude, maxLongitude - minLongitude)
+	}
+
+	private func exportPlaceAnnotationSize() -> CGSize {
+		switch exportDensityLevel() {
+		case 2:
+			return CGSize(width: 64, height: 64)
+		case 1:
+			return CGSize(width: 80, height: 80)
+		default:
+			return CGSize(width: 100, height: 100)
+		}
+	}
+
+	private func exportPlaceAnnotationOffset(for placeID: String?) -> CGPoint {
+		guard let placeID,
+			let index = visitPlaces.firstIndex(where: { $0.place?.id?.uuidString == placeID })
+		else {
+			return .zero
+		}
+
+		let radius: CGFloat
+		switch exportDensityLevel() {
+		case 2:
+			radius = 28
+		case 1:
+			radius = 18
+		default:
+			radius = 0
+		}
+		guard radius > 0 else { return .zero }
+
+		let pattern: [CGPoint] = [
+			CGPoint(x: 0, y: -radius),
+			CGPoint(x: radius, y: -radius * 0.45),
+			CGPoint(x: radius, y: radius * 0.45),
+			CGPoint(x: 0, y: radius),
+			CGPoint(x: -radius, y: radius * 0.45),
+			CGPoint(x: -radius, y: -radius * 0.45)
+		]
+		return pattern[index % pattern.count]
 	}
 
 	private func exportMapIDFrame(in contentRect: CGRect) -> CGRect {
@@ -372,7 +457,9 @@ extension MapExportTemplateViewController: MLNMapViewDelegate {
 
 		if let place = visitPlaces.compactMap(\ .place).first(where: { $0.id?.uuidString == placeAnnotation.id }),
 		   let thumb = place.thumb {
-			let annotationView = ExportPlaceImageAnnotationView(imageData: thumb, size: CGSize(width: 100, height: 100))
+			let annotationView = ExportPlaceImageAnnotationView(imageData: thumb, size: exportPlaceAnnotationSize())
+			let annotationOffset = exportPlaceAnnotationOffset(for: placeAnnotation.id)
+			annotationView.centerOffset = CGVector(dx: annotationOffset.x, dy: annotationOffset.y)
 			annotationView.isUserInteractionEnabled = true
 			return annotationView
 		}
