@@ -5,55 +5,52 @@
 //  Created by Savet on 5/6/26.
 //
 
+import UIKit
 import MapLibre
 
 final class ExportProfilePinAnnotationView: MLNAnnotationView {
 
-	private let bubbleView = UIView()
 	private let profileImageView: UIImageView
-	private let pointerView = UIView()
+	private let carImgV: UIImageView
 
-	init(image: UIImage, size: CGSize) {
+	init(image: UIImage, size: CGSize, carRotation: CGFloat) {
 		profileImageView = UIImageView(image: image)
+		carImgV = UIImageView()
 		super.init(frame: CGRect(origin: .zero, size: size))
 		backgroundColor = .clear
-
-		bubbleView.backgroundColor = .white
-		bubbleView.translatesAutoresizingMaskIntoConstraints = false
-		bubbleView.layer.shadowColor = UIColor.black.withAlphaComponent(0.18).cgColor
-		bubbleView.layer.shadowOpacity = 1
-		bubbleView.layer.shadowOffset = CGSize(width: 0, height: 4)
-		bubbleView.layer.shadowRadius = 10
-		addSubview(bubbleView)
+		carImgV.image = UIImage(named: "car-top-view")
+		carImgV.contentMode = .scaleAspectFit
+		carImgV.clipsToBounds = true
+		carImgV.translatesAutoresizingMaskIntoConstraints = false
+		carImgV.layer.shadowColor = UIColor.black.withAlphaComponent(0.14).cgColor
+		carImgV.layer.shadowOpacity = 1
+		carImgV.layer.shadowOffset = CGSize(width: 0, height: 3)
+		carImgV.layer.shadowRadius = 10
+		carImgV.transform = CGAffineTransform(rotationAngle: carRotation)
+		addSubview(carImgV)
+		
 
 		profileImageView.contentMode = .scaleAspectFill
 		profileImageView.clipsToBounds = true
 		profileImageView.translatesAutoresizingMaskIntoConstraints = false
-		bubbleView.addSubview(profileImageView)
-
-		pointerView.backgroundColor = .white
-		pointerView.translatesAutoresizingMaskIntoConstraints = false
-		pointerView.layer.shadowColor = UIColor.black.withAlphaComponent(0.14).cgColor
-		pointerView.layer.shadowOpacity = 1
-		pointerView.layer.shadowOffset = CGSize(width: 0, height: 3)
-		pointerView.layer.shadowRadius = 6
-		addSubview(pointerView)
+		profileImageView.layer.shadowColor = UIColor.black.withAlphaComponent(0.14).cgColor
+		profileImageView.layer.shadowOpacity = 1
+		profileImageView.layer.borderWidth = 3
+		profileImageView.layer.borderColor = UIColor.white.cgColor
+		profileImageView.layer.shadowOffset = CGSize(width: 0, height: 3)
+		profileImageView.layer.shadowRadius = 10
+		addSubview(profileImageView)
 
 		NSLayoutConstraint.activate([
-			bubbleView.topAnchor.constraint(equalTo: topAnchor),
-			bubbleView.centerXAnchor.constraint(equalTo: centerXAnchor),
-			bubbleView.widthAnchor.constraint(equalToConstant: size.width),
-			bubbleView.heightAnchor.constraint(equalToConstant: size.width),
-
-			profileImageView.centerXAnchor.constraint(equalTo: bubbleView.centerXAnchor),
-			profileImageView.centerYAnchor.constraint(equalTo: bubbleView.centerYAnchor),
-			profileImageView.widthAnchor.constraint(equalToConstant: size.width - 28),
-			profileImageView.heightAnchor.constraint(equalTo: profileImageView.widthAnchor),
-
-			pointerView.topAnchor.constraint(equalTo: bubbleView.bottomAnchor, constant: -10),
-			pointerView.centerXAnchor.constraint(equalTo: bubbleView.centerXAnchor),
-			pointerView.widthAnchor.constraint(equalToConstant: 28),
-			pointerView.heightAnchor.constraint(equalToConstant: 28)
+			carImgV.widthAnchor.constraint(equalToConstant: 60),
+			carImgV.heightAnchor.constraint(equalToConstant: 60),
+			carImgV.centerXAnchor.constraint(equalTo: centerXAnchor),
+			carImgV.centerYAnchor.constraint(equalTo: centerYAnchor),
+			
+			profileImageView.widthAnchor.constraint(equalToConstant: 90),
+			profileImageView.heightAnchor.constraint(equalToConstant: 90),
+			profileImageView.bottomAnchor.constraint(equalTo: carImgV.centerYAnchor),
+			profileImageView.centerXAnchor.constraint(equalTo: carImgV.centerXAnchor),
 		])
 	}
 
@@ -63,10 +60,7 @@ final class ExportProfilePinAnnotationView: MLNAnnotationView {
 
 	override func layoutSubviews() {
 		super.layoutSubviews()
-		bubbleView.layer.cornerRadius = bubbleView.bounds.width / 2
 		profileImageView.layer.cornerRadius = profileImageView.bounds.width / 2
-		pointerView.transform = CGAffineTransform(rotationAngle: .pi / 4)
-		pointerView.layer.cornerRadius = 6
 	}
 }
 

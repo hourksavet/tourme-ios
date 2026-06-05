@@ -11,7 +11,10 @@ import SVProgressHUD
 
 class MapExportTemplateViewController: UIViewController {
 
-	private let startAnnotationID = "map_export_start_annotation"
+	private let carOnRouteAnnotaion = "map_export_car_annotation"
+	
+	private var centerCoordinate: CLLocationCoordinate2D?
+	private var directionCoordinate: CLLocationCoordinate2D?
 	
 	private lazy var mapView: ToureMeMapView = {
 		let mapV = ToureMeMapView(style: "map-style-road")
@@ -23,6 +26,14 @@ class MapExportTemplateViewController: UIViewController {
 		mapV.automaticallyAdjustsContentInset = false
 		mapV.translatesAutoresizingMaskIntoConstraints = false
 		return mapV
+	}()
+	
+	private lazy var mapIDView: MapIDView = {
+		let view = MapIDView()
+		view.layer.cornerRadius = 6
+		view.isHidden = true
+		view.translatesAutoresizingMaskIntoConstraints = false
+		return view
 	}()
 	
 	private var tour: Tour!
@@ -53,6 +64,13 @@ class MapExportTemplateViewController: UIViewController {
 			mapView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
 		]
 		NSLayoutConstraint.activate(mapViewConstraints)
+		
+		mapView.addSubview(mapIDView)
+		NSLayoutConstraint.activate([
+			mapIDView.centerYAnchor.constraint(equalTo: mapView.logoView.centerYAnchor),
+			mapIDView.leadingAnchor.constraint(equalTo: mapView.logoView.trailingAnchor, constant: 10)
+		])
+		
 	}
 	
 	override func viewDidLoad() {
@@ -102,7 +120,6 @@ class MapExportTemplateViewController: UIViewController {
 
 		if let startCoordinate = startCoordinate() {
 			let startAnnotation = PlaceAnnotation()
-			startAnnotation.id = startAnnotationID
 			startAnnotation.coordinate = startCoordinate
 			startAnnotation.title = "Start"
 			mapView.addAnnotation(startAnnotation)
@@ -128,11 +145,28 @@ class MapExportTemplateViewController: UIViewController {
 			var segments: [([CLLocationCoordinate2D], String, String)] = []
 			for index in 1..<visibleCoordinates.count {
 				let routeCoordinates = Const.routingProvider.coordinates(visibleCoordinates[index - 1], visibleCoordinates[index])
+				if index == 1 {
+					let centerIndex: Int = routeCoordinates.count / 2
+					if centerIndex > 0 {
+						self.centerCoordinate = routeCoordinates[centerIndex]
+						if centerIndex + 1 < routeCoordinates.count {
+							self.directionCoordinate = routeCoordinates[centerIndex + 1]
+						}
+					}
+				}
 				if !routeCoordinates.isEmpty {
 					segments.append((routeCoordinates, "export_route_source_\(index)", "export_route_layer_\(index)"))
 				}
 			}
 			DispatchQueue.main.async {
+				if self.centerCoordinate != nil {
+					let carAnnotation = PlaceAnnotation()
+					carAnnotation.id = self.carOnRouteAnnotaion
+					carAnnotation.coordinate = self.centerCoordinate!
+					carAnnotation.title = "Car"
+					self.mapView.addAnnotation(carAnnotation)
+				}
+				
 				for segment in segments {
 					self.mapView.addPolyline(coordinates: segment.0, sourceID: segment.1, layerID: segment.2, color: .red, width: 4)
 				}
@@ -141,7 +175,6 @@ class MapExportTemplateViewController: UIViewController {
 				SVProgressHUD.dismiss()
 			}
 		}
-		
 		boundCoordinates(visibleCoordinates)
 	}
 
@@ -230,12 +263,16 @@ class MapExportTemplateViewController: UIViewController {
 	private func shareMapPDF(completion: @escaping () -> Void) {
 		let pageBounds = CGRect(origin: .zero, size: exportPageSize())
 		let contentRect = exportContentRect(in: pageBounds)
+		let mapIDFrame = exportMapIDFrame(in: contentRect)
 		let renderer = UIGraphicsPDFRenderer(bounds: pageBounds)
 		let data = renderer.pdfData { context in
 			context.beginPage()
 			UIColor.white.setFill()
 			context.cgContext.fill(pageBounds)
+			mapIDView.isHidden = false
 			mapView.drawHierarchy(in: contentRect, afterScreenUpdates: true)
+			mapIDView.isHidden = true
+			mapIDView.drawHierarchy(in: mapIDFrame, afterScreenUpdates: true)
 		}
 		let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(pdfFileName())
 		do {
@@ -285,6 +322,33 @@ class MapExportTemplateViewController: UIViewController {
 		let verticalInset = max(size.height * 0.08, 72)
 		return UIEdgeInsets(top: verticalInset, left: horizontalInset, bottom: verticalInset, right: horizontalInset)
 	}
+
+	private func exportMapIDFrame(in contentRect: CGRect) -> CGRect {
+		mapIDView.setNeedsLayout()
+		mapIDView.layoutIfNeeded()
+		let fittedSize = mapIDView.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize)
+		let sourceFrame = mapIDView.frame == .zero ? CGRect(origin: CGPoint(x: 16, y: mapView.bounds.height - fittedSize.height - 16), size: fittedSize) : mapIDView.frame
+		guard mapView.bounds.width > 0, mapView.bounds.height > 0 else {
+			return CGRect(origin: CGPoint(x: contentRect.minX + 20, y: contentRect.maxY - fittedSize.height - 20), size: fittedSize)
+		}
+
+		let scaleX = contentRect.width / mapView.bounds.width
+		let scaleY = contentRect.height / mapView.bounds.height
+		return CGRect(
+			x: contentRect.minX + (sourceFrame.minX * scaleX),
+			y: contentRect.minY + (sourceFrame.minY * scaleY),
+			width: sourceFrame.width * scaleX,
+			height: sourceFrame.height * scaleY
+		)
+	}
+
+	private func carRotationAngle() -> CGFloat {
+		guard let centerCoordinate, let directionCoordinate else { return 0 }
+		let latitudeDelta = directionCoordinate.latitude - centerCoordinate.latitude
+		let longitudeDelta = directionCoordinate.longitude - centerCoordinate.longitude
+		guard latitudeDelta != 0 || longitudeDelta != 0 else { return 0 }
+		return CGFloat(atan2(longitudeDelta, latitudeDelta))
+	}
 }
 
 extension MapExportTemplateViewController: MLNMapViewDelegate {
@@ -298,10 +362,10 @@ extension MapExportTemplateViewController: MLNMapViewDelegate {
 		guard let placeAnnotation = annotation as? PlaceAnnotation else {
 			return nil
 		}
-
-		if placeAnnotation.id == startAnnotationID {
+		
+		if placeAnnotation.id == carOnRouteAnnotaion {
 			let image = startMarkerImage()
-			let annotationView = ExportProfilePinAnnotationView(image: image, size: CGSize(width: 76, height: 100))
+			let annotationView = ExportProfilePinAnnotationView(image: image, size: CGSize(width: 76, height: 100), carRotation: carRotationAngle())
 			annotationView.isUserInteractionEnabled = true
 			return annotationView
 		}

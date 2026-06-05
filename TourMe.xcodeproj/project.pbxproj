@@ -19,6 +19,8 @@
 		7505C0862FD2605D004D0CAE /* ExportPlaceImageAnnotationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7505C0842FD2605A004D0CAE /* ExportPlaceImageAnnotationView.swift */; };
 		7505C0882FD261AC004D0CAE /* ExportProfilePinAnnotationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7505C0872FD261A9004D0CAE /* ExportProfilePinAnnotationView.swift */; };
 		7505C0892FD261AC004D0CAE /* ExportProfilePinAnnotationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7505C0872FD261A9004D0CAE /* ExportProfilePinAnnotationView.swift */; };
+		7505C08B2FD2AD53004D0CAE /* MapIDView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7505C08A2FD2AD40004D0CAE /* MapIDView.swift */; };
+		7505C08C2FD2AD53004D0CAE /* MapIDView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7505C08A2FD2AD40004D0CAE /* MapIDView.swift */; };
 		751114B52E0D29D5001EBE5C /* LoadingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 751114A52E0D29D5001EBE5C /* LoadingViewController.swift */; };
 		751114B62E0D29D5001EBE5C /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 751114A72E0D29D5001EBE5C /* AppDelegate.swift */; };
 		751114B72E0D29D5001EBE5C /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 751114A82E0D29D5001EBE5C /* SceneDelegate.swift */; };
@@ -227,6 +229,7 @@
 		7505C07E2FD163CA004D0CAE /* MapCustomCheckListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapCustomCheckListViewController.swift; sourceTree = "<group>"; };
 		7505C0842FD2605A004D0CAE /* ExportPlaceImageAnnotationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportPlaceImageAnnotationView.swift; sourceTree = "<group>"; };
 		7505C0872FD261A9004D0CAE /* ExportProfilePinAnnotationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportProfilePinAnnotationView.swift; sourceTree = "<group>"; };
+		7505C08A2FD2AD40004D0CAE /* MapIDView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapIDView.swift; sourceTree = "<group>"; };
 		751114872E0D0849001EBE5C /* TourMe-Pro.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "TourMe-Pro.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		751114A52E0D29D5001EBE5C /* LoadingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingViewController.swift; sourceTree = "<group>"; };
 		751114A72E0D29D5001EBE5C /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -560,6 +563,7 @@
 		756AF4562E0E7F42006AC87E /* CustomViews */ = {
 			isa = PBXGroup;
 			children = (
+				7505C08A2FD2AD40004D0CAE /* MapIDView.swift */,
 				759030532FBAC08F006B93B8 /* FavoriteButton.swift */,
 				7554C83A2E79133800518372 /* PlaceAnnotation.swift */,
 				754CB3DD2E78181000C89E02 /* PlaceAnnotationView.swift */,
@@ -916,6 +920,7 @@
 				7505C07D2FD1577A004D0CAE /* MapExportTemplateViewController.swift in Sources */,
 				751114D92E0D3D03001EBE5C /* Variable.swift in Sources */,
 				7535DB2B2E3C6BB60076FCDA /* SettingViewCell.swift in Sources */,
+				7505C08B2FD2AD53004D0CAE /* MapIDView.swift in Sources */,
 				757043222E30A23E00328637 /* RoadTourViewCell.swift in Sources */,
 				756FDD6A2ECF033C0012E3AB /* PlaceThumAnnotationView.swift in Sources */,
 				75EE78752FC43D6C00FC96A5 /* CompletedTourSectionHeaderView.swift in Sources */,
@@ -1008,6 +1013,7 @@
 				7505C07C2FD1577A004D0CAE /* MapExportTemplateViewController.swift in Sources */,
 				751114D82E0D3D03001EBE5C /* Variable.swift in Sources */,
 				7535DB2C2E3C6BB60076FCDA /* SettingViewCell.swift in Sources */,
+				7505C08C2FD2AD53004D0CAE /* MapIDView.swift in Sources */,
 				757043212E30A23E00328637 /* RoadTourViewCell.swift in Sources */,
 				756FDD692ECF033C0012E3AB /* PlaceThumAnnotationView.swift in Sources */,
 				75EE78742FC43D6C00FC96A5 /* CompletedTourSectionHeaderView.swift in Sources */,
