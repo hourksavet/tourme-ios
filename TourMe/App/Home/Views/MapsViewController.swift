@@ -46,12 +46,18 @@ class MapsViewController: UIViewController {
 	private lazy var locationBtn: UIButton = {
 		let button = UIButton(type: .system)
 		button.tintColor = .primary
-		button.backgroundColor = .white
-		button.alpha = 0.9
 		button.setImage(UIImage(systemName: "location.fill"), for: .normal)
 		button.translatesAutoresizingMaskIntoConstraints = false
 		button.addTarget(self, action: #selector(onClickLocationBtn), for: .touchUpInside)
 		return button
+	}()
+
+	private lazy var floatingMapControlsView: UIView = {
+		let view = UIView()
+		view.backgroundColor = .white
+		view.alpha = 0.9
+		view.translatesAutoresizingMaskIntoConstraints = false
+		return view
 	}()
 	
 	private lazy var routeSetupContentView: UIView = {
@@ -97,6 +103,15 @@ class MapsViewController: UIViewController {
 		button.setTitleColor(.primary, for: .normal)
 		button.titleLabel?.font = .defaultMedium(size: 17)
 		button.addTarget(self, action: #selector(onUseCurrentLocation), for: .touchUpInside)
+		button.translatesAutoresizingMaskIntoConstraints = false
+		return button
+	}()
+
+	private lazy var mapSettingsButton: UIButton = {
+		let button = UIButton(type: .system)
+		button.setImage(UIImage(systemName: "gearshape"), for: .normal)
+		button.tintColor = .primary
+		button.addTarget(self, action: #selector(onOpenMapSettings), for: .touchUpInside)
 		button.translatesAutoresizingMaskIntoConstraints = false
 		return button
 	}()
@@ -280,10 +295,12 @@ class MapsViewController: UIViewController {
 		super.loadView()
 		view.addSubview(mapView)
 		view.addSubview(bkStatusView)
-		view.addSubview(locationBtn)
+		view.addSubview(floatingMapControlsView)
 		view.addSubview(zoomControlView)
 		view.addSubview(clearRouteButton)
 		view.addSubview(routeSetupContentView)
+		floatingMapControlsView.addSubview(mapSettingsButton)
+		floatingMapControlsView.addSubview(locationBtn)
 		bkStatusView.addSubview(statusEffectView)
 		
 		NSLayoutConstraint.activate([
@@ -302,19 +319,29 @@ class MapsViewController: UIViewController {
 			statusEffectView.trailingAnchor.constraint(equalTo: bkStatusView.trailingAnchor),
 			statusEffectView.bottomAnchor.constraint(equalTo: bkStatusView.bottomAnchor),
 			
-			locationBtn.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
-			locationBtn.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-			locationBtn.widthAnchor.constraint(equalToConstant: 50),
+			floatingMapControlsView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
+			floatingMapControlsView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+			floatingMapControlsView.widthAnchor.constraint(equalToConstant: 50),
+
+			mapSettingsButton.topAnchor.constraint(equalTo: floatingMapControlsView.topAnchor),
+			mapSettingsButton.leadingAnchor.constraint(equalTo: floatingMapControlsView.leadingAnchor),
+			mapSettingsButton.trailingAnchor.constraint(equalTo: floatingMapControlsView.trailingAnchor),
+			mapSettingsButton.heightAnchor.constraint(equalToConstant: 50),
+
+			locationBtn.topAnchor.constraint(equalTo: mapSettingsButton.bottomAnchor),
+			locationBtn.leadingAnchor.constraint(equalTo: floatingMapControlsView.leadingAnchor),
+			locationBtn.trailingAnchor.constraint(equalTo: floatingMapControlsView.trailingAnchor),
 			locationBtn.heightAnchor.constraint(equalToConstant: 50),
+			locationBtn.bottomAnchor.constraint(equalTo: floatingMapControlsView.bottomAnchor),
 
 			zoomControlView.widthAnchor.constraint(equalToConstant: 50),
-			zoomControlView.bottomAnchor.constraint(equalTo: locationBtn.topAnchor, constant: -10),
-			zoomControlView.trailingAnchor.constraint(equalTo: locationBtn.trailingAnchor),
-			
+			zoomControlView.topAnchor.constraint(equalTo: routeSetupContentView.bottomAnchor, constant: 10),
+			zoomControlView.trailingAnchor.constraint(equalTo: routeSetupContentView.trailingAnchor),
+				
 			clearRouteButton.widthAnchor.constraint(equalToConstant: 30),
 			clearRouteButton.heightAnchor.constraint(equalToConstant: 30),
-			clearRouteButton.bottomAnchor.constraint(equalTo: zoomControlView.topAnchor, constant: -10),
-			clearRouteButton.trailingAnchor.constraint(equalTo: locationBtn.trailingAnchor),
+			clearRouteButton.bottomAnchor.constraint(equalTo: floatingMapControlsView.topAnchor, constant: -10),
+			clearRouteButton.trailingAnchor.constraint(equalTo: floatingMapControlsView.trailingAnchor),
 			
 			routeSetupContentView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
 			routeSetupContentView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
@@ -486,7 +513,7 @@ class MapsViewController: UIViewController {
 	
 	override func viewDidLayoutSubviews() {
 		super.viewDidLayoutSubviews()
-		locationBtn.addShadow(radius: 8)
+		floatingMapControlsView.addShadow(radius: 8)
 		routeSetupContentView.addShadow(radius: 8)
 		routeSetupContentView.layer.cornerRadius = 16
 		zoomControlView.addShadow(radius: 8)
@@ -726,6 +753,13 @@ class MapsViewController: UIViewController {
 		nextCoordinates.removeAll()
 		onRouteLocationsUpdate()
 		updateExpandedLayout(isExpend: false)
+	}
+
+	@objc private func onOpenMapSettings() {
+		let personalMapsVC = PersonalMapsViewController()
+		let navigationController = UINavigationController(rootViewController: personalMapsVC)
+		navigationController.modalPresentationStyle = .fullScreen
+		present(navigationController, animated: true)
 	}
 	
 	
