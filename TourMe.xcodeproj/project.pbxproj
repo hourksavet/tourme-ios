@@ -144,8 +144,6 @@
 		757218E72ED7EC6200FD545F /* VisitPlace.swift in Sources */ = {isa = PBXBuildFile; fileRef = 757218E52ED7EC5200FD545F /* VisitPlace.swift */; };
 		7579085F2E28E227007884A3 /* BaseTourMeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7579085E2E28E227007884A3 /* BaseTourMeViewController.swift */; };
 		757908602E28E227007884A3 /* BaseTourMeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7579085E2E28E227007884A3 /* BaseTourMeViewController.swift */; };
-		757908622E28E917007884A3 /* TourMeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 757908612E28E917007884A3 /* TourMeViewController.swift */; };
-		757908632E28E917007884A3 /* TourMeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 757908612E28E917007884A3 /* TourMeViewController.swift */; };
 		757D89062EC180EF00F73330 /* map-style-default.json in Resources */ = {isa = PBXBuildFile; fileRef = 757D89052EC180EF00F73330 /* map-style-default.json */; };
 		757D89072EC180EF00F73330 /* map-style-default.json in Resources */ = {isa = PBXBuildFile; fileRef = 757D89052EC180EF00F73330 /* map-style-default.json */; };
 		758AD1A32FBEF95900722DD1 /* TourMemberLinkedViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 758AD1A22FBEF94100722DD1 /* TourMemberLinkedViewController.swift */; };
@@ -296,7 +294,6 @@
 		757043202E30A23E00328637 /* RoadTourViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoadTourViewCell.swift; sourceTree = "<group>"; };
 		757218E52ED7EC5200FD545F /* VisitPlace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisitPlace.swift; sourceTree = "<group>"; };
 		7579085E2E28E227007884A3 /* BaseTourMeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseTourMeViewController.swift; sourceTree = "<group>"; };
-		757908612E28E917007884A3 /* TourMeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TourMeViewController.swift; sourceTree = "<group>"; };
 		757D89052EC180EF00F73330 /* map-style-default.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "map-style-default.json"; sourceTree = "<group>"; };
 		758AD1A22FBEF94100722DD1 /* TourMemberLinkedViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TourMemberLinkedViewController.swift; sourceTree = "<group>"; };
 		758AD1A52FC0002200722DD1 /* OngoingToureViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OngoingToureViewController.swift; sourceTree = "<group>"; };
@@ -393,7 +390,6 @@
 				751114A52E0D29D5001EBE5C /* LoadingViewController.swift */,
 				756AF4532E0E73EE006AC87E /* NamingViewController.swift */,
 				7579085E2E28E227007884A3 /* BaseTourMeViewController.swift */,
-				757908612E28E917007884A3 /* TourMeViewController.swift */,
 				755C7D0D2E1668B900AA2619 /* MapsViewController.swift */,
 			);
 			path = Home;
@@ -940,7 +936,6 @@
 				75EE786E2FC43CE400FC96A5 /* CompletedTourRouteCell.swift in Sources */,
 				7541CFFF2E1B634700DF14CA /* SavedToursViewController.swift in Sources */,
 				751114D22E0D3BD6001EBE5C /* AppFont.swift in Sources */,
-				757908622E28E917007884A3 /* TourMeViewController.swift in Sources */,
 				754B32592E1CF5E800BCB9F9 /* DataProvider.swift in Sources */,
 				7541D0162E1B875000DF14CA /* BannerProfileViewCell.swift in Sources */,
 				751114CF2E0D3B5C001EBE5C /* AppColor.swift in Sources */,
@@ -1034,7 +1029,6 @@
 				75EE786F2FC43CE400FC96A5 /* CompletedTourRouteCell.swift in Sources */,
 				7541D0002E1B634700DF14CA /* SavedToursViewController.swift in Sources */,
 				751114D32E0D3BD6001EBE5C /* AppFont.swift in Sources */,
-				757908632E28E917007884A3 /* TourMeViewController.swift in Sources */,
 				754B32582E1CF5E800BCB9F9 /* DataProvider.swift in Sources */,
 				7541D0172E1B875000DF14CA /* BannerProfileViewCell.swift in Sources */,
 				751114D02E0D3B5C001EBE5C /* AppColor.swift in Sources */,

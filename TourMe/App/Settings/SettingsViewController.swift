@@ -8,7 +8,7 @@
 import UIKit
 
 class SettingsViewController: UIViewController {
-
+	
 	private var account: Account!
 	
 	private lazy var tableView: UITableView = {
@@ -32,9 +32,9 @@ class SettingsViewController: UIViewController {
 		])
 	}
 	
-    override func viewDidLoad() {
-        super.viewDidLoad()
-
+	override func viewDidLoad() {
+		super.viewDidLoad()
+		
 		title = "settings".localized()
 		navigationController?.navigationBar.tintColor = .primary
 		navigationController?.navigationBar.prefersLargeTitles = true
@@ -56,7 +56,7 @@ class SettingsViewController: UIViewController {
 		
 		tableView.dataSource = self
 		tableView.delegate = self
-    }
+	}
 	
 	private func getAccount() {
 		let accounts = Const.dataManager.fetchData(Account.self)
@@ -64,7 +64,7 @@ class SettingsViewController: UIViewController {
 		account = accounts.first!
 		tableView.reloadSections([0], with: .automatic)
 	}
-
+	
 }
 
 extension SettingsViewController: UITableViewDataSource {
@@ -76,39 +76,42 @@ extension SettingsViewController: UITableViewDataSource {
 	
 	func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
 		switch section {
-			case 0:
-				return 1
-			default:
-				return 3
+		case 0:
+			return 1
+		default:
+			return 4
 		}
 	}
 	
 	func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
 		switch indexPath.section {
+		case 0:
+			let cell = tableView.dequeue(ProfileTableViewCell.self, for: indexPath)
+			if account != nil {
+				cell.configer(account)
+			}
+			cell.accessoryType = .disclosureIndicator
+			return cell
+		default:
+			var cell: SettingViewCell!
+			switch indexPath.row {
 			case 0:
-				let cell = tableView.dequeue(ProfileTableViewCell.self, for: indexPath)
-				if account != nil {
-					cell.configer(account)
-				}
-				cell.accessoryType = .disclosureIndicator
-				return cell
+				cell = tableView.dequeue(SettingViewCell.self, for: indexPath)
+				cell.configure(text: "subscription".localized(), icon: UIImage(systemName: "creditcard"))
+			case 1:
+				cell = tableView.dequeue(SettingViewCell.self, for: indexPath)
+				cell.configure(text: "app_language".localized(), icon: UIImage(systemName: "globe"))
+			case 2:
+				cell = tableView.dequeue(SettingViewCell.self, for: indexPath)
+				cell.configure(text: "discover".localized(), icon: UIImage(systemName: "info"))
+			case 3:
+				cell = tableView.dequeue(SettingViewCell.self, for: indexPath)
+				cell.configure(text: "Personal Map".localized(), icon: UIImage(systemName: "map"))
 			default:
-				var cell: SettingViewCell!
-				switch indexPath.row {
-					case 0:
-						cell = tableView.dequeue(SettingViewCell.self, for: indexPath)
-						cell.configure(text: "subscription".localized(), icon: UIImage(systemName: "creditcard"))
-					case 1:
-						cell = tableView.dequeue(SettingViewCell.self, for: indexPath)
-						cell.configure(text: "app_language".localized(), icon: UIImage(systemName: "globe"))
-					case 2:
-						cell = tableView.dequeue(SettingViewCell.self, for: indexPath)
-						cell.configure(text: "discover".localized(), icon: UIImage(systemName: "info"))
-					default:
-						return DefaultViewCell()
-				}
-				cell.separatorInset = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 0)
-				return cell
+				return DefaultViewCell()
+			}
+			cell.separatorInset = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 0)
+			return cell
 		}
 	}
 }
@@ -131,10 +134,10 @@ extension SettingsViewController: UITableViewDelegate {
 	
 	func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
 		switch indexPath.section {
-			case 0:
-				return 90
-			default:
-				return 70
+		case 0:
+			return 90
+		default:
+			return 70
 		}
 	}
 }
