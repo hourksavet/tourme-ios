@@ -19,6 +19,7 @@ class CheckBox: UIControl {
 	private var checkedImageView: UIImageView = {
 		let imageView = UIImageView(image: UIImage(systemName: "checkmark"))
 		imageView.translatesAutoresizingMaskIntoConstraints = false
+		imageView.tintColor = .primary
 		return imageView
 	}()
 	

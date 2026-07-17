@@ -129,7 +129,12 @@ extension SettingsViewController: UITableViewDelegate {
 			memoriesVC.onUpdatedProfile = { [weak self] account in
 				self?.viewModel.send(.accountUpdated(account))
 			}
-			navigationController?.pushViewController(memoriesVC, animated: true)
+			present(memoriesVC, animated: true)
+		} else if indexPath.section == 1, indexPath.row == 3 {
+			let personalMapsVC = PersonalMapsViewController()
+			let navigationController = UINavigationController(rootViewController: personalMapsVC)
+			navigationController.modalPresentationStyle = .fullScreen
+			present(navigationController, animated: true)
 		}
 	}
 		

@@ -71,6 +71,8 @@
 		75364FE13009DB2600F919A1 /* OngoingTourViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75364FDF3009DB2600F919A1 /* OngoingTourViewModel.swift */; };
 		75364FF63009DC6900F919A1 /* PlaceListModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75364FF53009DC6900F919A1 /* PlaceListModel.swift */; };
 		75364FF73009DC6900F919A1 /* PlaceListModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75364FF53009DC6900F919A1 /* PlaceListModel.swift */; };
+		75364FFC3009E10500F919A1 /* PersonalMapsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75364FFB3009E0D800F919A1 /* PersonalMapsViewController.swift */; };
+		75364FFD3009E10500F919A1 /* PersonalMapsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75364FFB3009E0D800F919A1 /* PersonalMapsViewController.swift */; };
 		753AC5DF2E3B143C0095B374 /* TourTrackingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 753AC5DE2E3B143C0095B374 /* TourTrackingViewController.swift */; };
 		753AC5E02E3B143C0095B374 /* TourTrackingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 753AC5DE2E3B143C0095B374 /* TourTrackingViewController.swift */; };
 		753AC5E22E3B53A40095B374 /* AllPlacesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 753AC5E12E3B53A40095B374 /* AllPlacesViewController.swift */; };
@@ -278,6 +280,7 @@
 		75364FDC3009DAB300F919A1 /* CreateTourViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateTourViewModel.swift; sourceTree = "<group>"; };
 		75364FDF3009DB2600F919A1 /* OngoingTourViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OngoingTourViewModel.swift; sourceTree = "<group>"; };
 		75364FF53009DC6900F919A1 /* PlaceListModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceListModel.swift; sourceTree = "<group>"; };
+		75364FFB3009E0D800F919A1 /* PersonalMapsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalMapsViewController.swift; sourceTree = "<group>"; };
 		753AC5DE2E3B143C0095B374 /* TourTrackingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TourTrackingViewController.swift; sourceTree = "<group>"; };
 		753AC5E12E3B53A40095B374 /* AllPlacesViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllPlacesViewController.swift; sourceTree = "<group>"; };
 		7541CFFE2E1B634700DF14CA /* SavedToursViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedToursViewController.swift; sourceTree = "<group>"; };
@@ -509,6 +512,7 @@
 				755C7D102E166C1700AA2619 /* SettingsViewController.swift */,
 				755C7D192E16893500AA2619 /* MemoriesViewController.swift */,
 				755C7D132E166DB900AA2619 /* DiscoverViewController.swift */,
+				75364FFB3009E0D800F919A1 /* PersonalMapsViewController.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -1216,6 +1220,7 @@
 				753AC5DF2E3B143C0095B374 /* TourTrackingViewController.swift in Sources */,
 				751114B72E0D29D5001EBE5C /* SceneDelegate.swift in Sources */,
 				758AD1A32FBEF95900722DD1 /* TourMemberLinkedViewController.swift in Sources */,
+				75364FFC3009E10500F919A1 /* PersonalMapsViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1319,6 +1324,7 @@
 				753AC5E02E3B143C0095B374 /* TourTrackingViewController.swift in Sources */,
 				751114C02E0D2E30001EBE5C /* SceneDelegate.swift in Sources */,
 				758AD1A42FBEF95900722DD1 /* TourMemberLinkedViewController.swift in Sources */,
+				75364FFD3009E10500F919A1 /* PersonalMapsViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
