@@ -25,6 +25,8 @@ class PlaceDetailsViewController: UIViewController {
 		var isFavorite: Bool = false
 	}
 	
+	private let viewModel = PlaceDetailsViewModel()
+	
 	private lazy var tableView: UITableView = {
 		let tableView = UITableView(frame: .zero, style: .insetGrouped)
 		tableView.register(BannerProfileViewCell.self)
@@ -175,32 +177,10 @@ class PlaceDetailsViewController: UIViewController {
 	}
 	
 	@objc private func savePlace() throws {
-		if action == .edit {
-			place.thumb = placeData.thumnail
-			place.name = placeData.name
-			place.lat = placeData.lat
-			place.lng = placeData.lng
-			place.note = placeData.note
-			place.isFavorite = placeData.isFavorite
-			try Const.dataManager.context.save()
-			NotificationCenter.default.post(name: Utils.observerName(.addPlace), object: nil, userInfo: [String.place: place!])
-		}else {
-			let context = Const.dataManager.context
-			let place = Place(context: context)
-			place.isFavorite = placeData.isFavorite
-			place.isUserAdd = true
-			place.stars = 0
-			place.id = UUID()
-			place.date = Date()
-			place.thumb = placeData.thumnail
-			place.name = placeData.name
-			place.lat = placeData.lat
-			place.lng = placeData.lng
-			place.note = placeData.note
-			try Const.dataManager.context.save()
+		try viewModel.save(action: action, place: place, data: placeData)
+		if action == .add {
 			placeData = PlaceData()
 			tableView.reloadData()
-			NotificationCenter.default.post(name: Utils.observerName(.addPlace), object: nil, userInfo: [String.place: place])
 		}
 		savePlaceButton.isEnabled = false
 	}
@@ -295,17 +275,14 @@ class PlaceDetailsViewController: UIViewController {
 	}
 	
 	private func confirmDetetePlace() {
-		let context = Const.dataManager.context
-		context.delete(place)
 		do {
-			try context.save()
-			if self.enableClose {
-				self.dismiss(animated: false)
-			}else {
-				self.navigationController?.popViewController(animated: true)
+			try viewModel.delete(place)
+			if enableClose {
+				dismiss(animated: false)
+			} else {
+				navigationController?.popViewController(animated: true)
 			}
-			NotificationCenter.default.post(name: Utils.observerName(.deletePlace), object: nil, userInfo: [String.place: place!])
-		}catch {
+		} catch {
 			print(error.localizedDescription)
 		}
 	}

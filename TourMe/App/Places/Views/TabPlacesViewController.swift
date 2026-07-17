@@ -7,12 +7,6 @@
 
 import UIKit
 
-struct PlaceListModel {
-	let place: Place
-	var isChose: Bool = false
-	var choseOrder: Int = 0
-}
-
 private enum PlaceTab: Int {
 	case all
 	case saved

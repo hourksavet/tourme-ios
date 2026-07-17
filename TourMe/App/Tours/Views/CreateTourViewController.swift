@@ -24,6 +24,8 @@ class CreateTourViewController: UIViewController {
 		var isFavorite: Bool = false
 	}
 	
+	private let viewModel = CreateTourViewModel()
+	
 	private lazy var tableView: UITableView = {
 		let tableView = UITableView(frame: .zero, style: .insetGrouped)
 		tableView.register(BannerProfileViewCell.self)
@@ -142,73 +144,19 @@ class CreateTourViewController: UIViewController {
 	}
 
 	@objc private func reviewTour() {
-		let context = Const.dataManager.context
-		let tour = Tour(context: context)
-		tour.createdAt = Date()
-		tour.id = UUID()
-		tour.name = tourData.name
-		tour.vehicle = tourData.vehicle
-		tour.banner = tourData.banner
-		tour.isFavorite = tourData.isFavorite
-		
-		let orderedSet = NSMutableOrderedSet()
-		for place in tourData.places {
-			let visitPlace = VisitPlace(context: context)
-			visitPlace.place = place
-			orderedSet.add(visitPlace)
-		}
-		tour.visitPlaces = orderedSet
+		let tour = viewModel.makePreviewTour(from: tourData)
 		let savedTour = SavedTourDetailsViewController(tour)
 		navigationController?.pushViewController(savedTour, animated: true)
 	}
 	
 	@objc private func saveTour() throws {
-		let context = Const.dataManager.context
+		try viewModel.save(action: action, tour: tour, data: tourData)
 		if action == .add {
-			let tour = Tour(context: context)
-			tour.createdAt = Date()
-			tour.id = UUID()
-			tour.name = tourData.name
-			tour.vehicle = tourData.vehicle
-			tour.banner = tourData.banner
-			tour.isFavorite = tourData.isFavorite
-			
-			let orderedSet = NSMutableOrderedSet()
-			for place in tourData.places {
-				let visitPlace = VisitPlace(context: context)
-				visitPlace.place = place
-				orderedSet.add(visitPlace)
-			}
-			tour.visitPlaces = orderedSet
-			try Const.dataManager.context.save()
 			tourData = TourData()
 			tableView.reloadData()
-			NotificationCenter.default.post(name: Utils.observerName(.addTour), object: nil, userInfo: [String.tour: tour])
-		}else {
-			tour.name = tourData.name
-			tour.vehicle = tourData.vehicle
-			tour.banner = tourData.banner
-			tour.isFavorite = tourData.isFavorite
-			
-			if let visitPls = tour?.visitPlaces?.compactMap({$0 as? VisitPlace}) {
-				for visitPl in visitPls {
-					context.delete(visitPl)
-				}
-				try context.save()
-			}
-			let orderedSet = NSMutableOrderedSet()
-			for place in tourData.places {
-				let visitPlace = VisitPlace(context: context)
-				visitPlace.place = place
-				orderedSet.add(visitPlace)
-			}
-			tour.visitPlaces = orderedSet
-			try Const.dataManager.context.save()
-			NotificationCenter.default.post(name: Utils.observerName(.addTour), object: nil, userInfo: [String.tour: tour!])
 		}
 		saveTourButton.isEnabled = false
 		reviewTourButton.isEnabled = false
-		
 	}
 	
 	private func checkToEnableSaveButton() {

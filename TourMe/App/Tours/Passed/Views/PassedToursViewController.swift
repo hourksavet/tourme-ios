@@ -5,6 +5,7 @@
 //  Created by Savet on 18/5/26.
 //
 
+import Combine
 import UIKit
 
 final class PassedToursViewController: UIViewController {
@@ -27,7 +28,18 @@ final class PassedToursViewController: UIViewController {
 		return label
 	}()
 
+	private let viewModel: PassedToursViewModel
 	private var tours: [Tour] = []
+	private var cancellables = Set<AnyCancellable>()
+
+	init(viewModel: PassedToursViewModel = PassedToursViewModel()) {
+		self.viewModel = viewModel
+		super.init(nibName: nil, bundle: nil)
+	}
+
+	required init?(coder: NSCoder) {
+		fatalError("init(coder:) has not been implemented")
+	}
 
 	override func loadView() {
 		super.loadView()
@@ -55,22 +67,30 @@ final class PassedToursViewController: UIViewController {
 		tableView.dataSource = self
 		tableView.delegate = self
 
-		NotificationCenter.default.addObserver(self, selector: #selector(reloadData), name: Utils.observerName(.endedTour), object: nil)
-
-		reloadData()
+		bindViewModel()
+		viewModel.send(.viewDidLoad)
 	}
 
 	override func viewWillAppear(_ animated: Bool) {
 		super.viewWillAppear(animated)
-		reloadData()
+		viewModel.send(.viewWillAppear)
 	}
 
-	@objc private func reloadData() {
-		let settings = NSPredicate(format: "endDate != nil")
-		let sortDescriptor = NSSortDescriptor(key: "endDate", ascending: false)
-		tours = Const.dataManager.fetchData(Tour.self, predicate: settings, sortDescriptors: [sortDescriptor])
-		tableView.reloadData()
-		emptyLabel.isHidden = !tours.isEmpty
+	private func bindViewModel() {
+		viewModel.$state
+			.receive(on: DispatchQueue.main)
+			.sink { [weak self] state in
+				self?.tours = state.tours
+				self?.tableView.reloadData()
+				self?.emptyLabel.isHidden = !state.isEmpty
+			}
+			.store(in: &cancellables)
+
+		NotificationCenter.default.publisher(for: Utils.observerName(.endedTour))
+			.sink { [weak self] _ in
+				self?.viewModel.send(.endedTour)
+			}
+			.store(in: &cancellables)
 	}
 }
 

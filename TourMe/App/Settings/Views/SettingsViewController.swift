@@ -5,12 +5,15 @@
 //  Created by Savet on 3/7/25.
 //
 
+import Combine
 import UIKit
 
 class SettingsViewController: UIViewController {
-	
-	private var account: Account!
-	
+		
+	private let viewModel = SettingsViewModel()
+	private var account: Account?
+	private var cancellables = Set<AnyCancellable>()
+		
 	private lazy var tableView: UITableView = {
 		let tableView = UITableView(frame: .zero, style: .insetGrouped)
 		tableView.register(DefaultViewCell.self)
@@ -19,11 +22,11 @@ class SettingsViewController: UIViewController {
 		tableView.translatesAutoresizingMaskIntoConstraints = false
 		return tableView
 	}()
-	
+		
 	override func loadView() {
 		super.loadView()
 		view.addSubview(tableView)
-		
+			
 		NSLayoutConstraint.activate([
 			tableView.topAnchor.constraint(equalTo: view.topAnchor),
 			tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -31,10 +34,10 @@ class SettingsViewController: UIViewController {
 			tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
 		])
 	}
-	
+		
 	override func viewDidLoad() {
 		super.viewDidLoad()
-		
+			
 		title = "settings".localized()
 		navigationController?.navigationBar.tintColor = .primary
 		navigationController?.navigationBar.prefersLargeTitles = true
@@ -45,99 +48,97 @@ class SettingsViewController: UIViewController {
 			.foregroundColor: UIColor.primary
 		]
 		appearance.titleTextAttributes = [
-			NSAttributedString.Key.foregroundColor:UIColor.primary,
+			NSAttributedString.Key.foregroundColor: UIColor.primary,
 			NSAttributedString.Key.font: UIFont.defaultMedium(size: UIFont.medium)
 		]
 		navigationItem.standardAppearance = appearance
 		navigationItem.rightBarButtonItem?.tintColor = .black
 		view.backgroundColor = .screenBackground
-		
-		getAccount()
-		
+			
 		tableView.dataSource = self
 		tableView.delegate = self
+		bindViewModel()
+		viewModel.send(.viewDidLoad)
 	}
-	
-	private func getAccount() {
-		let accounts = Const.dataManager.fetchData(Account.self)
-		if accounts.isEmpty { return }
-		account = accounts.first!
-		tableView.reloadSections([0], with: .automatic)
+
+	private func bindViewModel() {
+		viewModel.$state
+			.receive(on: DispatchQueue.main)
+			.sink { [weak self] state in
+				self?.account = state.account
+				self?.tableView.reloadSections([0], with: .automatic)
+			}
+			.store(in: &cancellables)
 	}
-	
 }
 
 extension SettingsViewController: UITableViewDataSource {
-	
-	
+		
 	func numberOfSections(in tableView: UITableView) -> Int {
 		2
 	}
-	
+		
 	func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
 		switch section {
-		case 0:
-			return 1
-		default:
-			return 4
+			case 0:
+				return 1
+			default:
+				return 4
 		}
 	}
-	
+		
 	func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
 		switch indexPath.section {
-		case 0:
-			let cell = tableView.dequeue(ProfileTableViewCell.self, for: indexPath)
-			if account != nil {
-				cell.configer(account)
-			}
-			cell.accessoryType = .disclosureIndicator
-			return cell
-		default:
-			var cell: SettingViewCell!
-			switch indexPath.row {
 			case 0:
-				cell = tableView.dequeue(SettingViewCell.self, for: indexPath)
-				cell.configure(text: "subscription".localized(), icon: UIImage(systemName: "creditcard"))
-			case 1:
-				cell = tableView.dequeue(SettingViewCell.self, for: indexPath)
-				cell.configure(text: "app_language".localized(), icon: UIImage(systemName: "globe"))
-			case 2:
-				cell = tableView.dequeue(SettingViewCell.self, for: indexPath)
-				cell.configure(text: "discover".localized(), icon: UIImage(systemName: "info"))
-			case 3:
-				cell = tableView.dequeue(SettingViewCell.self, for: indexPath)
-					cell.configure(text: "personal_map".localized(), icon: UIImage(systemName: "map"))
+				let cell = tableView.dequeue(ProfileTableViewCell.self, for: indexPath)
+				if let account {
+					cell.configer(account)
+				}
+				cell.accessoryType = .disclosureIndicator
+				return cell
 			default:
-				return DefaultViewCell()
-			}
-			cell.separatorInset = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 0)
-			return cell
+				var cell: SettingViewCell!
+				switch indexPath.row {
+					case 0:
+						cell = tableView.dequeue(SettingViewCell.self, for: indexPath)
+						cell.configure(text: "subscription".localized(), icon: UIImage(systemName: "creditcard"))
+					case 1:
+						cell = tableView.dequeue(SettingViewCell.self, for: indexPath)
+						cell.configure(text: "app_language".localized(), icon: UIImage(systemName: "globe"))
+					case 2:
+						cell = tableView.dequeue(SettingViewCell.self, for: indexPath)
+						cell.configure(text: "discover".localized(), icon: UIImage(systemName: "info"))
+					case 3:
+						cell = tableView.dequeue(SettingViewCell.self, for: indexPath)
+						cell.configure(text: "personal_map".localized(), icon: UIImage(systemName: "map"))
+					default:
+						return DefaultViewCell()
+				}
+				cell.separatorInset = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 0)
+				return cell
 		}
 	}
 }
 
 extension SettingsViewController: UITableViewDelegate {
-	
+		
 	func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
 		tableView.deselectRow(at: indexPath, animated: true)
-		if indexPath.section == 0 {
+		if indexPath.section == 0, let account {
 			let memoriesVC = MemoriesViewController(account)
-			memoriesVC.onUpdatedProfile = { account in
-				self.account = account
-				self.tableView.reloadSections([0], with: .automatic)
+			memoriesVC.onUpdatedProfile = { [weak self] account in
+				self?.viewModel.send(.accountUpdated(account))
 			}
 			navigationController?.pushViewController(memoriesVC, animated: true)
-		}else {
-			
 		}
 	}
-	
+		
 	func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
 		switch indexPath.section {
-		case 0:
-			return 90
-		default:
-			return 70
+			case 0:
+				return 90
+			default:
+				return 70
 		}
 	}
 }

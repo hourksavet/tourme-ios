@@ -1,17 +1,20 @@
 //
-//  VisitedPlacesViewController.swift
+//  SavedPlacesViewController.swift
 //  TourMe
 //
-//  Created by Savet on 18/5/26.
+//  Created by Savet on 7/7/25.
 //
 
+import Combine
 import UIKit
 
-class VisitedPlacesViewController: UIViewController {
-
-	private var placeModels: [PlaceListModel] = []
+class SavedPlacesViewController: UIViewController {
+		
+	private let viewModel = PlaceListViewModel(source: .saved)
+	private var placeListModels: [PlaceListModel] = []
 	private var isFavorite: Bool = false
-
+	private var cancellables = Set<AnyCancellable>()
+		
 	private lazy var tableView: UITableView = {
 		let table = UITableView(frame: .zero, style: .insetGrouped)
 		table.showsVerticalScrollIndicator = false
@@ -20,68 +23,77 @@ class VisitedPlacesViewController: UIViewController {
 		table.translatesAutoresizingMaskIntoConstraints = false
 		return table
 	}()
-	
+		
 	override func loadView() {
 		super.loadView()
 		view.addSubview(tableView)
+			
 		NSLayoutConstraint.activate([
 			tableView.topAnchor.constraint(equalTo: view.topAnchor),
 			tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
 			tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-			tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
+			tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
 		])
 	}
-
+		
 	override func viewDidLoad() {
 		super.viewDidLoad()
-
+			
+		title = "saved_places".localized()
 		view.backgroundColor = .screenBackground
+			
 		tableView.dataSource = self
 		tableView.delegate = self
-
-		NotificationCenter.default.addObserver(self, selector: #selector(reloadPlaces), name: Utils.observerName(.addPlace), object: nil)
-		NotificationCenter.default.addObserver(self, selector: #selector(reloadPlaces), name: Utils.observerName(.deletePlace), object: nil)
-
-		reloadPlaces()
+			
+		navigationController?.navigationBar.tintColor = .primary
+		navigationItem.largeTitleDisplayMode = .never
+		let appearance = UINavigationBarAppearance()
+		appearance.configureWithOpaqueBackground()
+		appearance.titleTextAttributes = [
+			NSAttributedString.Key.foregroundColor: UIColor.primary,
+			NSAttributedString.Key.font: UIFont.default(size: UIFont.normal)
+		]
+		navigationItem.standardAppearance = appearance
+		navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "xmark"), style: .done, target: self, action: #selector(closeScreen))
+			
+		bindViewModel()
+		viewModel.send(.viewDidLoad)
+	}
+		
+	@objc private func closeScreen() {
+		dismiss(animated: true)
+	}
+		
+	@objc private func addNewPlace() {
+		let vc = PlaceDetailsViewController(action: .add)
+		navigationController?.pushViewController(vc, animated: true)
 	}
 
-	override func viewWillAppear(_ animated: Bool) {
-		super.viewWillAppear(animated)
-		reloadPlaces()
-	}
+	private func bindViewModel() {
+		viewModel.$state
+			.receive(on: DispatchQueue.main)
+			.sink { [weak self] state in
+				self?.placeListModels = state.places
+				self?.isFavorite = state.isFavorite
+				self?.tableView.reloadData()
+			}
+			.store(in: &cancellables)
 
-	@objc private func reloadPlaces() {
-		let predicate: NSPredicate
-		if isFavorite {
-			predicate = NSPredicate(format: "isFavorite = true AND visitCount > 0")
-		} else {
-			predicate = NSPredicate(format: "visitCount > 0")
-		}
-
-		let sortDescriptor = NSSortDescriptor(key: "date", ascending: false)
-		let places = Const.dataManager.fetchData(Place.self, predicate: predicate, sortDescriptors: [sortDescriptor])
-		placeModels = places.map { PlaceListModel(place: $0) }
-		tableView.reloadData()
-	}
-
-	private func onDeletePlace(_ place: Place) {
-		let context = Const.dataManager.context
-		context.delete(place)
-		do {
-			try context.save()
-			NotificationCenter.default.post(name: Utils.observerName(.deletePlace), object: nil, userInfo: [String.place: place])
-		} catch {
-			print(error.localizedDescription)
-		}
+		NotificationCenter.default.publisher(for: Utils.observerName(.addPlace))
+			.merge(with: NotificationCenter.default.publisher(for: Utils.observerName(.deletePlace)))
+			.sink { [weak self] _ in
+				self?.viewModel.send(.placeChanged)
+			}
+			.store(in: &cancellables)
 	}
 }
 
-extension VisitedPlacesViewController: UITableViewDataSource {
-
+extension SavedPlacesViewController: UITableViewDataSource {
+		
 	func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-		return placeModels.count + 1
+		return placeListModels.count + 1
 	}
-
+		
 	func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
 		if indexPath.row == 0 {
 			let cell = tableView.dequeue(FavoriteViewCell.self, for: indexPath)
@@ -92,57 +104,51 @@ extension VisitedPlacesViewController: UITableViewDataSource {
 			cell.selectedBackgroundView = UIView()
 			return cell
 		}
-
 		let cell = tableView.dequeue(PlaceTableViewCell.self, for: indexPath)
-		cell.configure(with: placeModels[indexPath.row - 1])
+		cell.configure(with: placeListModels[indexPath.row - 1])
 		cell.accessoryType = .disclosureIndicator
 		return cell
 	}
+		
 }
 
-extension VisitedPlacesViewController: UITableViewDelegate {
-
+extension SavedPlacesViewController: UITableViewDelegate {
+		
 	func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
 		tableView.deselectRow(at: indexPath, animated: true)
 		if indexPath.row == 0 {
-			let cell = tableView.cellForRow(at: indexPath) as! FavoriteViewCell
-			cell.isFavorite.toggle()
-			isFavorite = cell.isFavorite
-			reloadPlaces()
+			viewModel.send(.toggleFavorite)
 		} else {
-			let place = placeModels[indexPath.row - 1].place
-			let placeDetailsVC = PlaceDetailsViewController(action: .edit, place: place, enableClose: true).toNavigationController()
-			placeDetailsVC.modalPresentationStyle = .overFullScreen
-			present(placeDetailsVC, animated: true)
+			let placeDetailsVC = PlaceDetailsViewController(action: .edit, place: placeListModels[indexPath.row - 1].place)
+			navigationController?.pushViewController(placeDetailsVC, animated: true)
 		}
 	}
-
+		
 	func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
 		if indexPath.row == 0 {
 			return 50
 		}
 		return 90
 	}
-
+		
 	func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
 		guard indexPath.row > 0 else { return nil }
+
 		let contextMenuConfiguration = UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in
 			let edit = UIAction(title: "edit".localized(), image: UIImage(systemName: "pencil")) { _ in
-				let place = self.placeModels[indexPath.row - 1].place
-				let placeDetailsVC = PlaceDetailsViewController(action: .edit, place: place, enableClose: true).toNavigationController()
-				placeDetailsVC.modalPresentationStyle = .overFullScreen
-				self.present(placeDetailsVC, animated: true)
+				let placeDetailsVC = PlaceDetailsViewController(action: .edit, place: self.placeListModels[indexPath.row - 1].place)
+				self.navigationController?.pushViewController(placeDetailsVC, animated: true)
 			}
-
+				
 			let delete = UIAction(title: "delete".localized(), image: UIImage(systemName: "trash"), attributes: .destructive) { _ in
-				self.onDeletePlace(self.placeModels[indexPath.row - 1].place)
+				self.viewModel.delete(self.placeListModels[indexPath.row - 1].place)
 			}
-
+				
 			return UIMenu(title: "", children: [edit, delete])
 		}
 		return contextMenuConfiguration
 	}
-	
+		
 	func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
 		return CGFloat.leastNormalMagnitude
 	}

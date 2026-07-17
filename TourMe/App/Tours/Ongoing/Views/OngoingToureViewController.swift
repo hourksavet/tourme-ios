@@ -5,10 +5,13 @@
 //  Created by Savet on 22/5/26.
 //
 
+import Combine
 import UIKit
 
 class OngoingToureViewController: UIViewController {
 
+	private let viewModel = OngoingTourViewModel()
+	private var cancellables = Set<AnyCancellable>()
 	var tour: Tour!
 	private var places: [Place] = []
 	private var vehicle: String = ""
@@ -64,10 +67,7 @@ class OngoingToureViewController: UIViewController {
 	}
 	
 	private func getOngoingTour() -> Tour? {
-		let predicate = NSPredicate(format: "startDate != nil AND endDate == nil")
-		let sortDescriptor = NSSortDescriptor(key: "startDate", ascending: false)
-		let tours = Const.dataManager.fetchData(Tour.self, predicate: predicate, sortDescriptors: [sortDescriptor])
-		return tours.first
+		viewModel.fetchOngoingTour()
 	}
 	
 	required init?(coder: NSCoder) {
@@ -129,29 +129,46 @@ class OngoingToureViewController: UIViewController {
 		tableView.tableFooterView = UIView(frame: CGRect(x: 0, y: 0, width: 0, height: 55))
 		
 		updateTourBtn.isEnabled = false
-		NotificationCenter.default.addObserver(self, selector: #selector(onStartTour), name: Utils.observerName(.statedTour), object: nil)
-		NotificationCenter.default.addObserver(self, selector: #selector(onEndedTour), name: Utils.observerName(.endedTour), object: nil)
+		bindViewModel()
 	}
 	
-	@objc private func onStartTour() {
+	private func bindViewModel() {
+		NotificationCenter.default.publisher(for: Utils.observerName(.statedTour))
+			.sink { [weak self] _ in
+				self?.onStartTour()
+			}
+			.store(in: &cancellables)
+
+		NotificationCenter.default.publisher(for: Utils.observerName(.endedTour))
+			.sink { [weak self] _ in
+				self?.onEndedTour()
+			}
+			.store(in: &cancellables)
+	}
+
+	private func onStartTour() {
 		if tour == nil {
-			tour = getOngoingTour()
-			if self.tour != nil {
-				vehicle = self.tour!.vehicle ?? ""
-				if let visitPls = self.tour!.visitPlaces?.compactMap({$0 as? VisitPlace}) {
+			tour = viewModel.fetchOngoingTour()
+			places.removeAll()
+			if tour != nil {
+				vehicle = tour.vehicle ?? ""
+				if let visitPls = tour.visitPlaces?.compactMap({$0 as? VisitPlace}) {
 					for visitPl in visitPls {
-						self.places.append(visitPl.place!)
+						if let place = visitPl.place {
+							places.append(place)
+						}
 					}
 				}
 			}
-			updateTourBtn.isHidden = self.tour == nil
-			cancelTourBtn.isHidden = self.tour == nil
+			updateTourBtn.isHidden = tour == nil
+			cancelTourBtn.isHidden = tour == nil
 			tableView.reloadData()
 		}
 	}
 	
-	@objc private func onEndedTour() {
+	private func onEndedTour() {
 		tour = nil
+		places.removeAll()
 		updateTourBtn.isHidden = true
 		cancelTourBtn.isHidden = true
 		tableView.reloadData()
@@ -162,53 +179,27 @@ class OngoingToureViewController: UIViewController {
 	}
 	
 	@objc private func onUpdateTour() {
-		let orderedSet = NSMutableOrderedSet()
-		if let visitPls = tour?.visitPlaces?.compactMap({$0 as? VisitPlace}) {
-			var deleteList: [VisitPlace] = []
-			for visitPl in visitPls {
-				let place = places.first(where: {$0.id?.uuidString == visitPl.place?.id?.uuidString})
-				if place == nil {
-					deleteList.append(visitPl)
-				}
-			}
-			let context = Const.dataManager.context
-			for item in deleteList {
-				context.delete(item)
-			}
-			for place in places {
-				if let visitPl = visitPls.first(where: {$0.place?.id?.uuidString == place.id?.uuidString}) {
-					orderedSet.add(visitPl)
-				}else {
-					let visitPlace = VisitPlace(context: Const.dataManager.context)
-					visitPlace.place = place
-					orderedSet.add(visitPlace)
-				}
-			}
-		}
-		tour.visitPlaces = orderedSet
-		tour.vehicle = vehicle
 		do {
-			try Const.dataManager.context.save()
-			onTourUpdated?(self.tour)
+			try viewModel.update(tour, places: places, vehicle: vehicle)
+			onTourUpdated?(tour)
 			updateTourBtn.isEnabled = false
-		}catch {
+		} catch {
 			print(error.localizedDescription)
 		}
 	}
 	
 	@objc private func onCancelTour() {
-		tour.startDate = nil
 		do {
-			try Const.dataManager.context.save()
-			onTourUpdated?(self.tour)
-		}catch {
+			try viewModel.cancel(tour)
+			onTourUpdated?(tour)
+		} catch {
 			print(error.localizedDescription)
 		}
 		tour = nil
+		places.removeAll()
 		updateTourBtn.isHidden = true
 		cancelTourBtn.isHidden = true
 		tableView.reloadData()
-		NotificationCenter.default.post(name: Utils.observerName(.endedTour), object: nil)
 	}
 	
 	private func pickPlaces() {

@@ -39,10 +39,6 @@ final class CompletedTourActionCell: UITableViewCell, CellID {
 
 	func configure(title: String, image: UIImage?, onTap: (() -> Void)?) {
 		self.onTap = onTap
-		actionButton.setTitle(title, for: .normal)
-		actionButton.setTitleColor(.white, for: .normal)
-		actionButton.setImage(image, for: .normal)
-		actionButton.imageView?.contentMode = .scaleAspectFit
 		actionButton.semanticContentAttribute = .forceLeftToRight
 		if #available(iOS 15.0, *) {
 			var configuration = actionButton.configuration ?? .plain()
@@ -53,6 +49,10 @@ final class CompletedTourActionCell: UITableViewCell, CellID {
 			configuration.baseForegroundColor = .white
 			actionButton.configuration = configuration
 		} else {
+			actionButton.setTitleColor(.white, for: .normal)
+			actionButton.setImage(image, for: .normal)
+			actionButton.imageView?.contentMode = .scaleAspectFit
+			actionButton.setTitle(title, for: .normal)
 			actionButton.imageEdgeInsets = UIEdgeInsets(top: 0, left: -8, bottom: 0, right: 8)
 		}
 	}
