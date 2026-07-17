@@ -130,10 +130,10 @@ class PlaceDetailsViewController: UIViewController {
 			case .add:
 				title = "add_place".localized()
 			case .edit:
-				title = "Edit Place".localized()
+				title = "edit_place".localized()
 				tableView.reloadData()
 			case .view:
-				title = "Place Details".localized()
+				title = "place_details".localized()
 				tableView.reloadData()
 		}
 		view.backgroundColor = .screenBackground

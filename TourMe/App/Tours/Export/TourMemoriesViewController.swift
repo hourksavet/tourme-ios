@@ -16,10 +16,10 @@ struct MemoryItem {
 final class TourMemoriesViewController: UIViewController {
 
 	private let items: [MemoryItem] = [
-		MemoryItem(title: "Tour maps", detail: "Free", icon: UIImage(systemName: "map.fill")),
-		MemoryItem(title: "Tour maps animation", detail: "Charge", icon: UIImage(systemName: "movieclapper.fill")),
-		MemoryItem(title: "Fully tour", detail: "Charge", icon: UIImage(systemName: "movieclapper.fill")),
-		MemoryItem(title: "Photo Album", detail: "Charge", icon: UIImage(systemName: "person.2.crop.square.stack.fill"))
+		MemoryItem(title: "tour_maps".localized(), detail: "free".localized(), icon: UIImage(systemName: "map.fill")),
+		MemoryItem(title: "tour_maps_animation".localized(), detail: "charge".localized(), icon: UIImage(systemName: "movieclapper.fill")),
+		MemoryItem(title: "fully_tour".localized(), detail: "charge".localized(), icon: UIImage(systemName: "movieclapper.fill")),
+		MemoryItem(title: "photo_album".localized(), detail: "charge".localized(), icon: UIImage(systemName: "person.2.crop.square.stack.fill"))
 	]
 
 	private lazy var tableView: UITableView = {
@@ -58,7 +58,7 @@ final class TourMemoriesViewController: UIViewController {
 	override func viewDidLoad() {
 		super.viewDidLoad()
 
-		title = "Memories"
+		title = "memories".localized()
 		view.backgroundColor = .screenBackground
 		navigationController?.navigationBar.tintColor = .primary
 		navigationItem.largeTitleDisplayMode = .never

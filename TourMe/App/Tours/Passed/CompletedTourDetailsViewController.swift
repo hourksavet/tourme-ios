@@ -73,7 +73,7 @@ final class CompletedTourDetailsViewController: UIViewController {
 	override func viewDidLoad() {
 		super.viewDidLoad()
 
-		title = "Completed Tour"
+		title = "completed_tour".localized()
 		view.backgroundColor = .screenBackground
 		navigationController?.navigationBar.tintColor = .primary
 		navigationItem.largeTitleDisplayMode = .never

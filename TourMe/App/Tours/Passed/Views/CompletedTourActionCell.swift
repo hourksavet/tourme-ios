@@ -44,7 +44,17 @@ final class CompletedTourActionCell: UITableViewCell, CellID {
 		actionButton.setImage(image, for: .normal)
 		actionButton.imageView?.contentMode = .scaleAspectFit
 		actionButton.semanticContentAttribute = .forceLeftToRight
-		actionButton.imageEdgeInsets = UIEdgeInsets(top: 0, left: -8, bottom: 0, right: 8)
+		if #available(iOS 15.0, *) {
+			var configuration = actionButton.configuration ?? .plain()
+			configuration.title = title
+			configuration.image = image
+			configuration.imagePlacement = .leading
+			configuration.imagePadding = 8
+			configuration.baseForegroundColor = .white
+			actionButton.configuration = configuration
+		} else {
+			actionButton.imageEdgeInsets = UIEdgeInsets(top: 0, left: -8, bottom: 0, right: 8)
+		}
 	}
 
 	@objc private func didTapAction() {

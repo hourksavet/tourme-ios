@@ -139,12 +139,12 @@ class MapCustomCheckListViewController: UIViewController {
 	
 	override func viewDidLoad() {
 		super.viewDidLoad()
-		title = "Personalize"
+		title = "personalize".localized()
 		view.backgroundColor = .screenBackground
 		tableView.dataSource = self
 		tableView.delegate = self
 		navigationItem.leftBarButtonItem = UIBarButtonItem(
-			title: "Apply",
+			title: "apply".localized(),
 			style: .done,
 			target: self,
 			action: #selector(applyStyleJSON)

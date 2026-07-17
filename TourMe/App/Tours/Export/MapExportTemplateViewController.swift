@@ -75,7 +75,7 @@ class MapExportTemplateViewController: UIViewController {
 	
 	override func viewDidLoad() {
 		super.viewDidLoad()
-		title = "Paper Map"
+		title = "paper_map".localized()
 		view.backgroundColor = .screenBackground
 		account = Const.dataManager.fetchData(Account.self).first
 		let styleButton = UIBarButtonItem(
@@ -121,7 +121,7 @@ class MapExportTemplateViewController: UIViewController {
 		if let startCoordinate = startCoordinate() {
 			let startAnnotation = PlaceAnnotation()
 			startAnnotation.coordinate = startCoordinate
-			startAnnotation.title = "Start"
+			startAnnotation.title = "start".localized()
 			mapView.addAnnotation(startAnnotation)
 			visibleCoordinates.insert(startCoordinate, at: 0)
 		}
@@ -163,7 +163,7 @@ class MapExportTemplateViewController: UIViewController {
 					let carAnnotation = PlaceAnnotation()
 					carAnnotation.id = self.carOnRouteAnnotaion
 					carAnnotation.coordinate = self.centerCoordinate!
-					carAnnotation.title = "Car"
+					carAnnotation.title = "car_marker".localized()
 					self.mapView.addAnnotation(carAnnotation)
 				}
 				
@@ -278,7 +278,7 @@ class MapExportTemplateViewController: UIViewController {
 			present(activityViewController, animated: true)
 		} catch {
 			completion()
-			showToast(message: "Export failed")
+			showToast(message: "export_failed".localized())
 		}
 	}
 

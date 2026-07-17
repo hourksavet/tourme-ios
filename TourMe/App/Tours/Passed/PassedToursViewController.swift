@@ -22,7 +22,7 @@ final class PassedToursViewController: UIViewController {
 		label.font = .default(size: UIFont.normal)
 		label.textColor = .secondaryLabel
 		label.textAlignment = .center
-		label.text = "No passed tours"
+			label.text = "no_passed_tours".localized()
 		label.translatesAutoresizingMaskIntoConstraints = false
 		return label
 	}()

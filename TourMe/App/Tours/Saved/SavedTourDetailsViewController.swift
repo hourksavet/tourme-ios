@@ -113,7 +113,7 @@ class SavedTourDetailsViewController: UIViewController {
 			NotificationCenter.default.post(name: Utils.observerName(.statedTour), object: nil, userInfo: [String.tour: tour!])
 			dismiss(animated: false)
 		}else {
-			Alert.showDefault(on: self, message: "can't_get_location", button: "retry".localized())
+				Alert.showDefault(on: self, message: "can't_get_location".localized(), button: "retry".localized())
 		}
 	}
 	

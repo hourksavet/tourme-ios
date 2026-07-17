@@ -221,7 +221,7 @@ class MemoriesViewController: UIViewController {
 			Alert.showDefault(
 				on: self,
 				title: "Image Playground",
-				message: "Image Playground is not available on this device. Make sure Apple Intelligence is supported and enabled.",
+					message: "image_playground_unavailable_message".localized(),
 				button: "ok".localized()
 			)
 			return
@@ -244,7 +244,7 @@ class MemoriesViewController: UIViewController {
 			Alert.showDefault(
 				on: self,
 				title: "Image Playground",
-				message: "Image Playground requires iOS 18.1 or later.",
+					message: "image_playground_requires_ios_message".localized(),
 				button: "ok".localized()
 			)
 		}
@@ -319,7 +319,7 @@ extension MemoriesViewController: UITableViewDelegate {
 	
 	func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
 		if section == 1 {
-			return "Exported Memories".localized()
+			return "exported_memories".localized()
 		}
 		return nil
 	}

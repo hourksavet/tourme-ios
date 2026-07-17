@@ -66,11 +66,11 @@ final class RoutePlaceSuggestionCell: UITableViewCell, CellID {
 		titleLabel.text = placeModel.place.name
 		let visitCount = Int(placeModel.place.visitCount)
 		if visitCount <= 0 {
-			subtitleLabel.text = "Never visited"
+			subtitleLabel.text = "never_visited".localized()
 		} else if visitCount == 1 {
-			subtitleLabel.text = "Visited 1 time"
+			subtitleLabel.text = "visited_once".localized()
 		} else {
-			subtitleLabel.text = "Visited \(visitCount) times"
+			subtitleLabel.text = String(format: "visited_count".localized(), visitCount)
 		}
 	}
 }

@@ -23,7 +23,7 @@ class SavedToursViewController: UIViewController {
 		label.font = .default(size: UIFont.normal)
 		label.textColor = .secondaryLabel
 		label.textAlignment = .center
-		label.text = "No saved tours"
+		label.text = "no_saved_tours".localized()
 		label.translatesAutoresizingMaskIntoConstraints = false
 		return label
 	}()

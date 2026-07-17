@@ -152,7 +152,7 @@ class VideoTourAnimationViewController: UIViewController {
 
 	@objc private func exportAnimationVideo() {
 		guard routeCoordinates.count > 1 else {
-			showToast(message: "No route to export")
+			showToast(message: "no_route_to_export".localized())
 			return
 		}
 		startScreenRecordingExport()
@@ -169,7 +169,7 @@ class VideoTourAnimationViewController: UIViewController {
 		if let startCoordinate = startCoordinate() {
 			let startAnnotation = PlaceAnnotation()
 			startAnnotation.coordinate = startCoordinate
-			startAnnotation.title = "Start"
+			startAnnotation.title = "start".localized()
 			mapView.addAnnotation(startAnnotation)
 			visibleCoordinates.insert(startCoordinate, at: 0)
 		}
@@ -286,7 +286,7 @@ class VideoTourAnimationViewController: UIViewController {
 		let annotation = PlaceAnnotation()
 		annotation.id = carOnRouteAnnotaion
 		annotation.coordinate = animatedRouteCoordinates[0]
-		annotation.title = "Car"
+		annotation.title = "car_marker".localized()
 		carAnnotation = annotation
 		mapView.addAnnotation(annotation)
 		refreshCarAnnotationView()
@@ -345,7 +345,7 @@ class VideoTourAnimationViewController: UIViewController {
 	private func startScreenRecordingExport() {
 		let recorder = RPScreenRecorder.shared()
 		guard recorder.isAvailable else {
-			showToast(message: "Video export failed")
+			showToast(message: "video_export_failed".localized())
 			return
 		}
 
@@ -363,7 +363,7 @@ class VideoTourAnimationViewController: UIViewController {
 					self.setRecordingControlsHidden(false)
 					SVProgressHUD.dismiss()
 					self.setAnimationButtonsEnabled()
-					self.showToast(message: "Video export failed")
+					self.showToast(message: "video_export_failed".localized())
 					return
 				}
 				self.startCarAnimationIfNeeded()
@@ -390,7 +390,7 @@ class VideoTourAnimationViewController: UIViewController {
 					previewController.previewControllerDelegate = self
 					self.present(previewController, animated: true)
 				} else {
-					self.showToast(message: "Video export failed")
+					self.showToast(message: "video_export_failed".localized())
 				}
 			}
 		}
@@ -484,7 +484,7 @@ class VideoTourAnimationViewController: UIViewController {
 			bounds.ne.longitude = max(bounds.ne.longitude, destinationCoordinate.longitude)
 			mapView.setVisibleCoordinateBounds(bounds, edgePadding: UIEdgeInsets(top: 140, left: 90, bottom: 220, right: 90), animated: false) { [weak self] in
 				guard let self else { return }
-				var camera = self.mapView.camera
+				let camera = self.mapView.camera
 				camera.pitch = self.followCameraPitch
 				camera.heading = 0
 				self.mapView.setCamera(camera, animated: false)
@@ -492,7 +492,7 @@ class VideoTourAnimationViewController: UIViewController {
 			return
 		}
 		mapView.setCenter(centerCoordinate, zoomLevel: min(max(mapView.zoomLevel, 13.5), followCameraZoomLevel), animated: false)
-		var camera = mapView.camera
+		let camera = mapView.camera
 		camera.centerCoordinate = centerCoordinate
 		camera.pitch = followCameraPitch
 		camera.heading = 0

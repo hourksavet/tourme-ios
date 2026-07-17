@@ -78,7 +78,7 @@ class MapsViewController: UIViewController {
 
 	private lazy var chooseOnMapButton: UIButton = {
 		let button = UIButton(type: .system)
-		button.setTitle("Choose on map", for: .normal)
+		button.setTitle("choose_on_map".localized(), for: .normal)
 		button.semanticContentAttribute = .forceRightToLeft
 		button.contentHorizontalAlignment = .leading
 		button.tintColor = .primary
@@ -91,7 +91,7 @@ class MapsViewController: UIViewController {
 
 	private lazy var currentLocationButton: UIButton = {
 		let button = UIButton(type: .system)
-		button.setTitle("Current location", for: .normal)
+		button.setTitle("current_location".localized(), for: .normal)
 		button.contentHorizontalAlignment = .leading
 		button.tintColor = .primary
 		button.setTitleColor(.primary, for: .normal)
@@ -140,7 +140,7 @@ class MapsViewController: UIViewController {
 
 	private lazy var originTextField: UITextField = {
 		let textField = UITextField()
-		textField.placeholder = "Search origin"
+		textField.placeholder = "search_origin".localized()
 		textField.font = .defaultMedium(size: 17)
 		textField.textColor = .primary
 		textField.tintColor = .primary
@@ -162,7 +162,7 @@ class MapsViewController: UIViewController {
 
 	private lazy var destinationTextField: UITextField = {
 		let textField = UITextField()
-		textField.placeholder = "Search place"
+		textField.placeholder = "search_place".localized()
 		textField.font = .defaultMedium(size: 17)
 		textField.textColor = .black
 		textField.tintColor = .primary
@@ -470,7 +470,7 @@ class MapsViewController: UIViewController {
 		suggestionTableView.dataSource = self
 		suggestionTableView.delegate = self
 		
-		originLoModel = LocationViewModel(isUserLocation: true, title: "Your location", coordinate: locationManager.location?.coordinate, distance: 0)
+		originLoModel = LocationViewModel(isUserLocation: true, title: "your_location".localized(), coordinate: locationManager.location?.coordinate, distance: 0)
 		destinationLoModel = LocationViewModel(isUserLocation: false)
 		originTextField.text = originLoModel?.title
 		
@@ -575,7 +575,7 @@ class MapsViewController: UIViewController {
 			if originLoModel == nil {
 				originLoModel = LocationViewModel()
 			}
-			originLoModel?.title = "Dropped pin"
+			originLoModel?.title = "dropped_pin".localized()
 			var newOrigin = originLoModel
 			newOrigin?.isUserLocation = false
 			newOrigin?.coordinate = coordinate
@@ -584,7 +584,7 @@ class MapsViewController: UIViewController {
 			if destinationLoModel == nil {
 				destinationLoModel = LocationViewModel()
 			}
-			destinationLoModel?.title = "Dropped pin"
+			destinationLoModel?.title = "dropped_pin".localized()
 			editingRouteType = .destination
 			var newDestination = destinationLoModel
 			newDestination?.coordinate = coordinate
@@ -686,14 +686,14 @@ class MapsViewController: UIViewController {
 		originTextField.resignFirstResponder()
 		destinationTextField.resignFirstResponder()
 		updateExpandedLayout(isExpend: false)
-		let message = editingRouteType == .origin ? "Long press on map to choose origin" : "Long press on map to choose destination"
+		let message = editingRouteType == .origin ? "long_press_choose_origin".localized() : "long_press_choose_destination".localized()
 		showToast(message: message)
 		
 	}
 
 	@objc private func onUseCurrentLocation() {
 		guard let coordinate = mapView.userLocation?.coordinate else {
-			showToast(message: "Current location unavailable")
+			showToast(message: "current_location_unavailable".localized())
 			return
 		}
 		mapView.setCenter(coordinate, zoomLevel: mapView.zoomLevel, animated: true)
@@ -709,7 +709,7 @@ class MapsViewController: UIViewController {
 			}
 			var tmpOrigin = originLoModel
 			tmpOrigin?.coordinate = coordinate
-			tmpOrigin?.title = "Your location"
+			tmpOrigin?.title = "your_location".localized()
 			tmpOrigin?.isUserLocation = true
 			originLoModel = tmpOrigin
 		}else {
@@ -718,7 +718,7 @@ class MapsViewController: UIViewController {
 			}
 			var tmpDestination = destinationLoModel
 			tmpDestination?.coordinate = coordinate
-			tmpDestination?.title = "Your location"
+			tmpDestination?.title = "your_location".localized()
 			tmpDestination?.isUserLocation = true
 			destinationLoModel = tmpDestination
 		}
@@ -778,7 +778,7 @@ class MapsViewController: UIViewController {
 		previousCoordinates.removeAll()
 		nextCoordinates.removeAll()
 		filteredPlaceModels = allPlaceModels
-		originLoModel = LocationViewModel(isUserLocation: true, title: "Your location", coordinate: nil, distance: 0)
+		originLoModel = LocationViewModel(isUserLocation: true, title: "your_location".localized(), coordinate: nil, distance: 0)
 		destinationLoModel = nil
 		suggestionTableView.reloadData()
 		
@@ -1037,4 +1037,3 @@ extension MapsViewController: UITextFieldDelegate {
 		return true
 	}
 }
-

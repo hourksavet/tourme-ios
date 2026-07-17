@@ -733,7 +733,7 @@ class TourTrackingViewController: UIViewController {
 	
 	private func setupMenu(at indexPath: IndexPath) -> UIMenu? {
 		let visitPl = visitPlaces[indexPath.row]
-		let title = visitPl.status == .visited ? "You have visted this place." : visitPl.place?.name
+		let title = visitPl.status == .visited ? "place_already_visited_message".localized() : visitPl.place?.name
 		let actions = menuActions(at: indexPath).map { item in
 			UIAction(
 				title: item.title,
@@ -748,7 +748,7 @@ class TourTrackingViewController: UIViewController {
 
 	private func presentMenuActions(at indexPath: IndexPath) {
 		let visitPl = visitPlaces[indexPath.row]
-		let actionSheet = UIAlertController(title: visitPl.place?.name, message: visitPl.status == .visited ? "You have visted this place." : nil, preferredStyle: .actionSheet)
+		let actionSheet = UIAlertController(title: visitPl.place?.name, message: visitPl.status == .visited ? "place_already_visited_message".localized() : nil, preferredStyle: .actionSheet)
 
 		for action in menuActions(at: indexPath) {
 			let style: UIAlertAction.Style = action.isDestructive ? .destructive : .default
@@ -757,7 +757,7 @@ class TourTrackingViewController: UIViewController {
 			})
 		}
 
-		actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+		actionSheet.addAction(UIAlertAction(title: "cancel".localized(), style: .cancel))
 
 		if let cell = placesCollectionView.cellForItem(at: indexPath) {
 			actionSheet.popoverPresentationController?.sourceView = cell

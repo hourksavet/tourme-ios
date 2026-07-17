@@ -106,7 +106,7 @@ extension SettingsViewController: UITableViewDataSource {
 				cell.configure(text: "discover".localized(), icon: UIImage(systemName: "info"))
 			case 3:
 				cell = tableView.dequeue(SettingViewCell.self, for: indexPath)
-				cell.configure(text: "Personal Map".localized(), icon: UIImage(systemName: "map"))
+					cell.configure(text: "personal_map".localized(), icon: UIImage(systemName: "map"))
 			default:
 				return DefaultViewCell()
 			}
